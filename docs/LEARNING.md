@@ -603,3 +603,15 @@ RAG是先检索再生成；Chunk是可检索的小片段，Embedding把文本表
 ### 阶段19补充：测试环境防误用收费模型
 
 最终审查发现管理员分析集成测试可能继承开发终端AI_MODE，因此在Maven Surefire统一设置AI_MODE=mock、AI_API_KEY为空，确保普通测试默认不发送收费请求。主动将外部AI_MODE设为live、Key置空做回归，统计测试明确断言返回mode=mock；重新mvn clean package，37项全通过、0跳过。第一次clean因本轮验收服务持有JAR文件锁失败，停止本轮后端后重建成功，没有删测试或跳过断言。
+
+## 阶段20：Docker配置已生成，部署验收阻塞
+
+生成后端/前端Dockerfile、docker-compose.yml、Nginx网关、Java健康探针和.dockerignore。五服务为MySQL8.4、Redis7.4、后端、前端、Nginx；网络和数据卷独立，数据库/Redis不映射宿主端口，网关仅绑定本机18088。后端非root运行，Nginx关闭SSE缓冲。使用新生成临时容器凭据做配置验证，没有复用本机数据库密码。
+实测docker compose config --quiet通过；两次docker compose build都在auth.docker.io获取官方基础镜像拉取令牌时网络超时，尚未开始应用编译。没有执行compose up，因此容器健康检查未验证；只读确认本项目没有创建容器或volume。没有修改Docker系统代理/DNS、没有碰已有容器或本机MySQL数据目录。
+按“不通过不宣称完成”的约定，本阶段未提交完成commit，配置保留工作区待网络恢复后重试；没有跳过失败继续增加业务功能。文档与已实现代码的本机验收可独立完成。多阶段构建用构建镜像编译，再把产物放运行镜像；容器健康检查区分应用HTTP和数据库表已初始化。面试问题：为什么用独立volume？为什么不占用3306？compose depends_on与健康检查区别？为什么SSE代理必须关缓冲？
+
+## 阶段21：本机收尾与交接，Docker验收仍待补
+
+最终mvn clean package：20个测试类、37项、0失败、0错误、0跳过，所有Maven模块SUCCESS。外部AI_MODE=live且Key为空时，测试层仍使用Mock。npm run build通过，有ElementPlus体积提示；浏览器通过注册登录、空菜单/购物车/订单、Mock SSE和退出登录，无pageerror。测试账号精确清理，本轮启动的8080和5173服务已停止。
+README重写为当前可用功能、启动指南、环境变量、API与AI架构；DATABASE_DESIGN由规划更新为实际10表；新增INTERVIEW的36个问答、TEST_RESULTS与NIGHTLY_REPORT。完整LEARNING历史保留，只追加。仓库当前文件和Git历史已扫描当前会话凭据，未发现命中；SQL脚本固定新库，无旧库写入或破坏性DDL。
+仍未验证：Docker构建/启动/健康、真实模型API/工具选择效果、语义Embedding、有商品下单的浏览器全流程、可选管理员初始化实际插入与生产性能。真实MySQL后端事务测试已覆盖下单。不能把Mock、构建成功或健康接口成功等同完整生产验收。面试回答应区分真实基础设施测试、Mock协议测试、未测供应商集成三类证据。
