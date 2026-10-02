@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /** 只加载 MVC 切片，验证路由、状态码和 JSON 契约，不要求开发者提供数据库密码。 */
 @WebMvcTest(HealthController.class)
 class HealthControllerTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.tang.sky.interceptor.AuthInterceptor interceptor;
     @Autowired
     private MockMvc mvc;
 

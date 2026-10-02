@@ -467,3 +467,14 @@ HealthControllerTest只加载MVC层，验证路由、HTTP状态与JSON字段，�
 实测mvn clean test：6项通过，0失败、0错误、0跳过，包含真实数据库连接。新增测试覆盖业务异常、空输入、非法JSON及未知异常不泄露；没有为了通过而禁用测试。
 面试回答：我用统一泛型结果让前端稳定读取code/message/data，通过全局Advice集中处理业务、校验和未知异常，既保留HTTP状态语义，又避免每个Controller重复捕获和泄露底层信息。
 面试问题：统一返回与HTTP状态如何配合？Advice何时执行？为什么不直接返回异常message？参数校验应该放哪里？
+
+## 阶段3：用户与JWT认证
+
+新增user与employee表，仅在sky_takeout_ai建表；普通注册只创建USER，管理员不开放匿名注册。Controller → AuthService → AccountMapper → MySQL；登录验证BCrypt散列后签发两小时JWT，后续请求由Interceptor验签、校验账号状态、角色与UserContext，结束及转异步时remove上下文。
+BCrypt成本12，限制UTF-8密码不超过72字节，避免截断语义。用户名唯一约束防并发重复，找不到账号也做一次dummy散列校验并统一失败信息。JWT_SECRET可从环境提供Base64密钥；未配置时只生成进程内随机密钥，重启会使旧Token失效，不把固定开发密钥写入源码。
+核心代码：AuthModels区分Account/DTO/VO，AccountMapper参数绑定，AuthServiceImpl控制注册和登录，JwtService使用JJWT0.13.0，AuthInterceptor与WebConfig保护用户/管理员路径。服务端不信任客户端userId，不返回密码散列。
+测试首次发现servletPath为空导致角色判定漏检，修复为读取Spring已匹配路由，保留越权回归断言。测试包含真实数据库注册与散列、正确/错误/不存在账号、重复注册、无Token、非法/过期Token、普通用户访问后台以及用户上下文隔离。测试数据放事务中回滚。
+面试回答：登录先通过BCrypt验证数据库散列，再由后端签发JWT；拦截器校验签名、过期时间、issuer和角色，并重新确认账号可用。当前身份进入线程上下文供业务使用，请求完成必须清理，防止线程池复用导致串用户。管理员权限不由注册请求决定。
+面试问题：JWT如何防篡改？为什么不用明文或MD5保存密码？ThreadLocal为何必须remove？JWT重启后是否有效？普通用户如何与管理员隔离？
+
+阶段3最终重测：10项测试全部通过，Failures=0、Errors=0、Skipped=0，四个Reactor工程SUCCESS。

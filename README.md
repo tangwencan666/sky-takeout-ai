@@ -2,7 +2,7 @@
 
 基于 Spring Boot + Vue3 + Spring AI 的智能外卖平台。
 
-当前阶段：阶段2已验收，统一返回与异常处理已实现。Vue3、AI均为 **Planned**，尚未实现。
+当前阶段：阶段3用户认证与JWT已实现，测试结果见学习笔记。Vue3、AI均为 **Planned**，尚未实现。
 
 已实测：启用RUN_DB_TESTS后父工程和三个模块的`mvn clean test`成功，两个测试通过且Skipped=0；可执行jar打包及实际HTTP /health验证通过。新库sky_takeout_ai已创建，catalog断言通过。
 
@@ -135,3 +135,12 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 阶段2：Result、业务异常、全局异常处理、基础参数校验。后续再按顺序开发业务、Redis、Vue、Spring AI与RAG。
 学习说明和当前实测结果见[LEARNING.md](docs/LEARNING.md)，数据库规划见[DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md)。
 
+
+## 认证接口（阶段3）
+
+- POST /user/auth/register：username、password；仅创建普通用户。
+- POST /user/auth/login、POST /admin/auth/login：返回data.token和不含密码的用户VO。
+- GET /user/me、GET /admin/me：Authorization: Bearer Token。
+- 用户名3至32位字母/数字/下划线，密码8至64字符且UTF-8不超过72字节。
+- 可配置JWT_SECRET为至少32字节随机密钥的Base64；默认使用进程内随机密钥，重启需要重新登录。
+- 管理员表无默认账号、无默认密码、无匿名注册。阶段3数据库脚本为sql/02_auth.sql。
