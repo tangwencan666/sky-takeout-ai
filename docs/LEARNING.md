@@ -595,3 +595,7 @@ RAG是先检索再生成；Chunk是可检索的小片段，Embedding把文本表
 安全测试验证注入文字保持User消息层级、注册工具恰好为七个只读工具且无userId/identity schema、用户无权调用管理员分析、缺角色Token、限流与回复长度。37项全通过，0跳过。测试验证代码边界，不宣称真实LLM免疫Prompt Injection；已知上线限制记录于docs/SECURITY.md。
 增加可选离线管理员初始化：scripts/Initialize-Admin.ps1从隐藏输入读取密码，只通过进程环境交给显式启用的AdminInitializer；检查catalog固定新库，插入BCrypt哈希，同名账号不覆盖，无默认管理员。尚未向本机库创建管理员，后续由用户选择账号密码。
 为什么不靠Prompt做安全：模型输入可受攻击，权限是确定性业务约束。身份来自JWT，工具只能读，写入走普通接口并验归属/状态，结构化金额由Java核验。面试问题：Prompt Injection与SQL注入有什么区别？工具schema隐藏身份就够了吗？异步ThreadLocal怎么处理？Mock安全测试有哪些局限？
+
+### 阶段19补充：前端身份切换回归
+
+最终检查发现退出登录后订单详情弹窗等本地状态可能残留，已通过watch(session.token)在身份变化时清空订单/购物车/地址/会话组件并回到菜单。npm run build通过；本机Chrome无头浏览器实测注册登录、空菜单、空购物车、空订单页、Mock SSE和退出登录，pageErrors=0，测试账号已按专用随机用户名精确清理。浏览器未验收有商品下单流程，该流程由真实MySQL后端集成测试覆盖。

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api } from './api'
 import { useSession } from './stores/session'
@@ -12,6 +12,13 @@ const categories = ref([]), category = ref(null), dishes = ref([]), meals = ref(
 const page = ref(1), total = ref(0), cart = ref({ items: [], totalPrice: 0, checkoutAllowed: false })
 const orders = ref([]), orderPage = ref(1), orderTotal = ref(0), selectedOrder = ref(null)
 const delivery = ref({ address: '', contact: '' }), requestKey = ref(crypto.randomUUID())
+// 身份变化时清除旧用户页面状态，避免退出后对话框或再次登录显示上一账号的订单。
+watch(() => session.token, () => {
+  tab.value = 'menu'; selectedOrder.value = null; orders.value = []; orderTotal.value = 0
+  cart.value = { items: [], totalPrice: 0, checkoutAllowed: false }
+  delivery.value = { address: '', contact: '' }; category.value = null; page.value = 1
+  requestKey.value = crypto.randomUUID(); error.value = ''
+})
 // 所有动作显示统一错误；取消确认不是异常，不向服务端发送写请求。
 async function run(action) {
   if (busy.value) return
