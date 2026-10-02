@@ -33,6 +33,12 @@
             <resource><directory>${project.basedir}/../knowledge</directory><targetPath>knowledge</targetPath></resource>
         </resources>
         <plugins>
+            <!-- 测试强制Mock，即使开发终端设置AI_MODE=live也不能触发收费API。 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration><systemPropertyVariables><AI_MODE>mock</AI_MODE><AI_API_KEY></AI_API_KEY></systemPropertyVariables></configuration>
+            </plugin>
             <!-- 只有运行模块需要打包为可执行 Boot jar，公共 jar 不应用这个插件。 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>

@@ -46,7 +46,9 @@ class StatisticsIntegrationTest {
         assertEquals(7, statistics.trend(7).size());
         assertEquals(countBefore + 1, statistics.trend(7).stream().mapToLong(t -> t.orderCount()).sum());
         assertTrue(statistics.top(7).stream().anyMatch(d -> d.dishId() == dish && d.quantity() == 2));
-        assertTrue(ai.analyze("分析", 7).answer().contains("Mock"));
+        var analysis = ai.analyze("分析", 7);
+        assertEquals("mock", analysis.mode());
+        assertTrue(analysis.answer().contains("Mock"));
     }
     @Test void rolesAndRangeAreCheckedInsideServiceAndTool() {
         UserContext.set(new UserContext.Identity(1, "USER"));
