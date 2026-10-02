@@ -558,3 +558,10 @@ PromptCatalog从resources/prompts读取System Prompt。System定义角色和约�
 使用Spring AI Message对象保存最近20条用户/助手消息，按认证userId+conversationId分区，闲置30分钟过期、最多1000会话。同会话并发生成返回冲突，模型网络请求不持全局锁；失败回复不写入历史。服务重启会丢失内存会话，尚未升级Redis Memory。
 LLM本身不记得独立HTTP请求，后端必须把历史重新随本次输入传给模型；conversationId是历史索引而不是权限凭证。24项测试通过无跳过，断言第二轮Prompt包含“辣”和“30以内”，另一用户同ID不含旧内容，窗口上限与失败不落历史均验证。
 面试回答：我用用户ID和会话ID共同定位有限历史，重新拼成多条ChatMessage传入模型，避免用全局聊天列表串用户；通过过期和窗口控制内存，重启持久化可后续换Redis。面试问题：为什么LLM不自动记忆？如何隔离会话？历史过长怎么办？为什么失败响应不加入历史？
+
+## 阶段15：Structured Output与AI套餐
+
+新增MealPlanService和POST /user/ai/meal-plan。输入message，可显式提供budget；未提供时只识别“预算/不超过/不超+数字”，无法确认则要求明确预算。先用DishTools取真实候选，再让模型返回Draft(reason,dishIds)，ChatClient.entity映射Java对象。
+Java重新读取每道菜的可售状态与价格，拒绝重复/不存在/候选外ID、空方案、超过10道或总价超预算，输出AiMealPlan(reason,dishIds,dishes,totalPrice,budget,mode)。每个ID代表一份，最终加购仍是普通购物车API，计划不写订单。Mock按预算选真实候选并明确不具备自然语言口味理解。
+26项测试通过无跳过，包含BeanOutputConverter结构化转换、准确核价与拒绝路径。真实模型套餐效果尚未验证。String不适合后续业务，因为提取ID/金额不可靠；结构化只是格式约束，不保证事实正确，所以必须业务校验。
+面试回答：模型只提出菜品ID和理由，我用结构化输出映射草案，再查询数据库核对ID、上架状态和价格，BigDecimal重算总额并对照明确预算，最后返回可供前端渲染的菜品卡片。面试问题：JSON合法等于业务合法吗？为何不相信模型总价？预算不清楚怎么办？怎样防推荐不存在菜品？
