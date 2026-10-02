@@ -478,3 +478,11 @@ BCrypt成本12，限制UTF-8密码不超过72字节，避免截断语义。用�
 面试问题：JWT如何防篡改？为什么不用明文或MD5保存密码？ThreadLocal为何必须remove？JWT重启后是否有效？普通用户如何与管理员隔离？
 
 阶段3最终重测：10项测试全部通过，Failures=0、Errors=0、Skipped=0，四个Reactor工程SUCCESS。
+
+## 阶段4：分类、菜品与口味
+
+新增category、dish、dish_flavor表，固定写入sky_takeout_ai，使用外键、状态检查与DECIMAL金额。调用链Controller → DishService → CatalogMapper → MySQL，Controller没有直接调用Mapper。
+CatalogModels包含Entity/DTO/组合VO与分页VO。Service限制分页范围，用户查询强制可售与有效分类，后台负责CRUD和状态切换。菜品及口味在一个事务中写入/替换/删除；分类引用由外键兜底，分类类型建立后不随意改变。
+测试mvn clean test：12项通过，0失败/错误/跳过。覆盖CRUD、分页、下架不可见、上架不能删除、口味修改、事务回滚及不存在资源；真实测试数据回滚。
+常见错误：分页不设上限、用double计算金额、只提交菜品忘记口味事务、用户接口返回下架商品。面试回答：我将菜品与口味作为一个事务单元，用参数化Mapper访问数据库，用户端固定只读可售数据，后台通过角色认证控制写操作，依赖外键和Service共同维护关联完整性。
+面试问题：菜品和口味为何同事务？下架与删除区别？分页为什么限制size？DECIMAL和double区别？

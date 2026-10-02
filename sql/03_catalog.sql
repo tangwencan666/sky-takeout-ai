@@ -1,0 +1,18 @@
+USE sky_takeout_ai;
+CREATE TABLE IF NOT EXISTS category (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(50) NOT NULL,
+ type TINYINT NOT NULL, sort INT NOT NULL DEFAULT 0, status TINYINT NOT NULL DEFAULT 1,
+ CONSTRAINT ck_category_type CHECK(type IN (1,2)), CONSTRAINT ck_category_status CHECK(status IN (0,1))
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS dish (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT, category_id BIGINT NOT NULL,
+ name VARCHAR(100) NOT NULL, price DECIMAL(10,2) NOT NULL, description VARCHAR(500) NOT NULL DEFAULT '',
+ image VARCHAR(500) NOT NULL DEFAULT '', status TINYINT NOT NULL DEFAULT 0,
+ CONSTRAINT fk_dish_category FOREIGN KEY(category_id) REFERENCES category(id),
+ CONSTRAINT ck_dish_price CHECK(price>=0), CONSTRAINT ck_dish_status CHECK(status IN (0,1)), INDEX idx_dish_status(status)
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS dish_flavor (
+ id BIGINT PRIMARY KEY AUTO_INCREMENT, dish_id BIGINT NOT NULL, name VARCHAR(50) NOT NULL,
+ options VARCHAR(500) NOT NULL,
+ CONSTRAINT fk_flavor_dish FOREIGN KEY(dish_id) REFERENCES dish(id)
+) ENGINE=InnoDB;

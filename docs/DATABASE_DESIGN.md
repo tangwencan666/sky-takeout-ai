@@ -53,3 +53,7 @@ erDiagram
 ## 阶段3已落地
 
 sql/02_auth.sql只在sky_takeout_ai创建user、employee。username唯一，password_hash为BCrypt，status控制禁用。没有写入默认管理员密码。管理员账号需通过受控初始化流程创建，不能通过普通注册升级角色。
+
+## 阶段4已落地
+
+sql/03_catalog.sql创建category、dish、dish_flavor；category.type=1菜品/2套餐，status=0下架/1上架。dish.category_id和dish_flavor.dish_id有外键，价格DECIMAL(10,2)。

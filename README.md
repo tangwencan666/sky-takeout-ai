@@ -144,3 +144,7 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 - 用户名3至32位字母/数字/下划线，密码8至64字符且UTF-8不超过72字节。
 - 可配置JWT_SECRET为至少32字节随机密钥的Base64；默认使用进程内随机密钥，重启需要重新登录。
 - 管理员表无默认账号、无默认密码、无匿名注册。阶段3数据库脚本为sql/02_auth.sql。
+
+## 菜单接口（阶段4）
+
+用户GET /user/categories、/user/dishes、/user/dishes/{id}；列表支持categoryId/keyword/page/size。后台/admin/categories支持GET/POST/PUT/{id}/DELETE/{id}，/admin/dishes支持相同CRUD及PUT /{id}/status?status=0或1。所有后台操作要求ADMIN。详情为data.dish与data.flavors，列表为data.records。
