@@ -156,3 +156,7 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 阶段7：POST /user/orders接收requestKey/address/contact；GET /user/orders及/{id}；POST /{id}/cancel、/{id}/again。管理员PUT /admin/orders/{id}/status?status=WAITING_ACCEPT等按顺序流转，仅模拟状态，不接入真实支付。
 
 阶段8：设置CACHE_ENABLED=true启用公开菜单Redis缓存；REDIS_HOST默认127.0.0.1，REDIS_PORT默认6379。支持REDIS_PASSWORD。分类TTL10分钟、菜品第一页TTL120秒；订单核价绕过缓存。
+
+## Vue用户端（阶段9）
+
+进入sky-web执行npm ci、npm run dev，访问终端显示地址；后端默认8080，Vite将/api代理到后端。生产构建npm run build。当前包含注册登录、菜单、购物车及订单页面；需要管理员录入上架商品后菜单才有内容。没有自动塞入虚假业务数据。
