@@ -65,4 +65,18 @@ class AuthIntegrationTest {
         mvc.perform(post("/user/auth/register").contentType("application/json").content("{\"username\":\"x\",\"password\":\"short\"}"))
                 .andExpect(status().isBadRequest());
     }
+    @Test void rejectsForgedIdentityAndAdminAnalyticsAccess() throws Exception {
+        var user = auth.register(input);
+        String token = jwt.issue(user.id(), "USER");
+        mvc.perform(post("/user/ai/chat").header("Authorization", "Bearer " + token)
+                .contentType("application/json").content("{\"message\":\"午餐\",\"userId\":999,\"role\":\"ADMIN\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/admin/ai/chat").header("Authorization", "Bearer " + token)
+                .contentType("application/json").content("{\"message\":\"营收\",\"days\":7}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/user/auth/register").contentType("application/json")
+                .content("{\"username\":\"forged_admin\",\"password\":\"FakeTest!29\",\"role\":\"ADMIN\"}"))
+                .andExpect(status().isBadRequest());
+        assertNull(accounts.findUser("forged_admin"));
+    }
 }

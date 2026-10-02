@@ -182,3 +182,7 @@ POST /user/ai/rules，输入message，返回answer、sources、embeddingMode和m
 ### 管理员AI分析
 
 POST /admin/ai/chat，输入message和days（1..90），仅ADMIN。三类受控工具统计单品销量、每日订单趋势、已完成订单金额。金额是教学统计，非真实收款，普通用户AI无法调用。
+
+### 安全与管理员初始化
+
+安全边界和未覆盖的生产风险见docs/SECURITY.md。可在打包后用scripts/Initialize-Admin.ps1 -Username 自选用户名创建管理员，脚本隐藏输入密码且不保存，已有账号绝不覆盖。本机尚未创建默认管理员。

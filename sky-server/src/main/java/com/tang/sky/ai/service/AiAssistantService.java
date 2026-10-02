@@ -30,7 +30,7 @@ public class AiAssistantService {
         return replyMessages(java.util.List.of(new org.springframework.ai.chat.messages.UserMessage(message)));
     }
     protected String replyMessages(java.util.List<org.springframework.ai.chat.messages.Message> messages){
-        try{return request(messages).call().content();}
+        try{return com.tang.sky.ai.security.AiOutput.checked(request(messages).call().content());}
         catch(RuntimeException e){log.warn("AI request failed type={}",e.getClass().getSimpleName());throw new BusinessException(ErrorCode.AI_UNAVAILABLE);}
     }
     protected ChatClient.ChatClientRequestSpec request(java.util.List<org.springframework.ai.chat.messages.Message> messages){

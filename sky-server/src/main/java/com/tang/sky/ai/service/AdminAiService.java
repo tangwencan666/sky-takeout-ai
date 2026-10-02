@@ -37,6 +37,6 @@ public class AdminAiService {
                     .tools(tools).toolContext(Map.of("identity", UserContext.require())).call().content();
             } catch (RuntimeException e) { throw new BusinessException(ErrorCode.AI_UNAVAILABLE); }
         }
-        return new Analysis(answer, revenue, top, trend, mode);
+        return new Analysis(com.tang.sky.ai.security.AiOutput.checked(answer), revenue, top, trend, mode);
     }
 }

@@ -28,7 +28,7 @@ public class JwtService {
             var claims = Jwts.parser().verifyWith(key).requireIssuer("sky-takeout-ai").build().parseSignedClaims(token).getPayload();
             long id = Long.parseLong(claims.getSubject());
             String role = claims.get("role", String.class);
-            if (id <= 0 || claims.getExpiration() == null || !Set.of("USER", "ADMIN").contains(role)) throw new IllegalArgumentException();
+            if (id <= 0 || claims.getExpiration() == null || role == null || !Set.of("USER", "ADMIN").contains(role)) throw new IllegalArgumentException();
             return new UserContext.Identity(id, role);
         } catch (JwtException | IllegalArgumentException e) { throw new BusinessException(ErrorCode.UNAUTHORIZED); }
     }

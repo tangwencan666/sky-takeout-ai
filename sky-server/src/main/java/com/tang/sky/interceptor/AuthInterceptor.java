@@ -12,7 +12,8 @@ import org.springframework.web.servlet.AsyncHandlerInterceptor;
 public class AuthInterceptor implements AsyncHandlerInterceptor {
     private final JwtService jwt;
     private final AuthService auth;
-    public AuthInterceptor(JwtService jwt, AuthService auth) { this.jwt=jwt; this.auth=auth; }
+    private final com.tang.sky.ai.security.AiRateLimiter limiter;
+    public AuthInterceptor(JwtService jwt, AuthService auth, com.tang.sky.ai.security.AiRateLimiter limiter) { this.jwt=jwt; this.auth=auth; this.limiter=limiter; }
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         UserContext.clear();
         String header = request.getHeader("Authorization");
@@ -23,6 +24,8 @@ public class AuthInterceptor implements AsyncHandlerInterceptor {
         if (route.startsWith("/admin/") && !identity.role().equals("ADMIN")) throw new BusinessException(ErrorCode.FORBIDDEN);
         if (route.startsWith("/user/") && !identity.role().equals("USER")) throw new BusinessException(ErrorCode.FORBIDDEN);
         auth.verifyActive(identity);
+        if ("POST".equals(request.getMethod()) && (route.startsWith("/user/ai/") || route.startsWith("/admin/ai/"))
+                && request.getDispatcherType() != jakarta.servlet.DispatcherType.ASYNC) limiter.acquire(identity);
         UserContext.set(identity);
         return true;
     }

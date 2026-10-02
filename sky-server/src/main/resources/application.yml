@@ -2,6 +2,10 @@ server:
   port: ${SERVER_PORT:8080}
 
 spring:
+  jackson:
+    deserialization:
+      # 明确拒绝DTO之外的身份/价格字段，避免调用方误以为这些字段会被信任。
+      fail-on-unknown-properties: true
   data:
     redis:
       host: ${REDIS_HOST:127.0.0.1}
