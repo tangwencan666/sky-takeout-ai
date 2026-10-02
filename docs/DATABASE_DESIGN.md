@@ -61,3 +61,5 @@ sql/03_catalog.sql创建category、dish、dish_flavor；category.type=1菜品/2�
 阶段5：sql/04_setmeal.sql新增setmeal与setmeal_dish，主表关联套餐分类，中间表用唯一键与双外键保持N:N关系。
 
 阶段6：sql/05_cart.sql创建shopping_cart；item_type区分DISH/SETMEAL，商品引用在Service校验，user_id为外键；数量1至99，同用户同商品口味唯一。
+
+阶段7：sql/06_orders.sql创建orders和order_detail，(user_id,request_key)唯一，订单明细有外键，商品ID不设外键以保留删除商品后的历史快照。

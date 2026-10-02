@@ -152,3 +152,5 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 阶段5接口：用户GET /user/setmeals及/{id}；管理员/admin/setmeals支持GET/POST/PUT/{id}/DELETE/{id}及PUT /{id}/status?status=1。详情返回data.setmeal与data.dishes；创建body包含categoryId/name/price/description/dishes:[{dishId,quantity}]。
 
 阶段6：GET/POST/DELETE /user/cart，PATCH /user/cart/{id}/reduce，DELETE /user/cart/{id}。添加body为itemType(DISH/SETMEAL)、itemId、flavor、quantity；返回items、totalPrice与checkoutAllowed。
+
+阶段7：POST /user/orders接收requestKey/address/contact；GET /user/orders及/{id}；POST /{id}/cancel、/{id}/again。管理员PUT /admin/orders/{id}/status?status=WAITING_ACCEPT等按顺序流转，仅模拟状态，不接入真实支付。
