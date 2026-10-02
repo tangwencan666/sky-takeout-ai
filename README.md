@@ -168,3 +168,5 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 阶段12已注册只读DishTools：searchDish、getDishDetail、getAvailableDishes。工具回调Mock测试已通过，真实模型自动调用尚未验证。
 
 阶段13：只读OrderTools与CartTools已注册；订单返回模型前去除地址和联系人。工具权限、schema及真实订单隔离测试通过，真实LLM调用尚未验证。
+
+阶段14已实现内存多轮记忆：认证用户+会话ID隔离、最近20条、闲置30分钟、最多1000会话。相同conversationId连续请求会携带历史，重启清空。

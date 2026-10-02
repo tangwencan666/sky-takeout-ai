@@ -552,3 +552,9 @@ PromptCatalog从resources/prompts读取System Prompt。System定义角色和约�
 新增OrderTools.getRecentOrders/getOrderDetail与CartTools.getShoppingCart/calculateCartPrice。工具schema没有userId，JWT → UserContext → Service按归属查询，模型不能选择其他用户；只有USER身份可用。订单输出去掉地址、联系人、请求幂等键，仅保留所需摘要和明细。
 22项测试通过无跳过，包含工具无身份拒绝、schema检查和真实数据库中用户A不能读取其他用户订单的工具回归。工具未提供下单/取消/加购/支付，因此模型文本不会直接触发写入。
 面试回答：私有数据工具从后端认证上下文取身份，查询仍走原订单Service的归属过滤，并在返回模型前移除非必要个人信息。面试问题：为什么不能让模型传userId？JWT与conversationId区别？工具输出为什么要脱敏？写工具如何二次确认？
+
+## 阶段14：多轮Chat Memory
+
+使用Spring AI Message对象保存最近20条用户/助手消息，按认证userId+conversationId分区，闲置30分钟过期、最多1000会话。同会话并发生成返回冲突，模型网络请求不持全局锁；失败回复不写入历史。服务重启会丢失内存会话，尚未升级Redis Memory。
+LLM本身不记得独立HTTP请求，后端必须把历史重新随本次输入传给模型；conversationId是历史索引而不是权限凭证。24项测试通过无跳过，断言第二轮Prompt包含“辣”和“30以内”，另一用户同ID不含旧内容，窗口上限与失败不落历史均验证。
+面试回答：我用用户ID和会话ID共同定位有限历史，重新拼成多条ChatMessage传入模型，避免用全局聊天列表串用户；通过过期和窗口控制内存，重启持久化可后续换Redis。面试问题：为什么LLM不自动记忆？如何隔离会话？历史过长怎么办？为什么失败响应不加入历史？
