@@ -26,10 +26,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
+        <spring-ai.version>1.1.8</spring-ai.version>
     </properties>
     <!-- 这里只统一版本；子模块声明 dependencies 后才真正引入依赖。 -->
     <dependencyManagement>
         <dependencies>
+            <dependency><groupId>org.springframework.ai</groupId><artifactId>spring-ai-bom</artifactId><version>${spring-ai.version}</version><type>pom</type><scope>import</scope></dependency>
             <dependency>
                 <groupId>com.tang.sky</groupId>
                 <artifactId>sky-common</artifactId>

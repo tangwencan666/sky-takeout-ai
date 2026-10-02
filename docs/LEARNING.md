@@ -527,3 +527,10 @@ Cache Aside链路：Controller → Service缓存代理 → Redis命中直接返�
 实测npm install和npm run build成功，未修改全局Node/npm。ElementPlus全量引入产生约1MB JS体积警告，这是体积优化项，不是构建失败。尚未完成浏览器端到端交互验收，不能把build成功当成全流程已实测。
 常见错误：前端缓存总价当订单金额、只改本地状态不调用API、界面隐藏按钮当权限、把Token写调试日志。面试回答：用户端用Pinia管理登录状态，Axios统一加JWT和处理错误，Vite开发代理解决接口地址统一；所有写入仍调用真实后端，订单提交用幂等键防重复。
 面试问题：Pinia管理什么？401如何处理？开发代理与CORS区别？为什么前端鉴权不能代替后端校验？
+
+## 阶段10：Spring AI接入
+
+通过Spring AI BOM1.1.8管理依赖，与Boot3.5系列配套；AiConfig手动装配OpenAiChatModel和ChatClient，AI_MODE=mock为默认，不需要Key也不影响外卖业务。live通过AI_API_KEY、AI_BASE_URL、AI_MODEL环境变量切换OpenAI-compatible模型。HTTP连接5秒、读取30秒超时，失败转503，不向前端返回模型异常原文。
+PromptCatalog从resources/prompts读取System Prompt。System定义角色和约束，User消息表达需求，不能把用户文字拼进System提高权限。AiAssistantService与普通业务Service独立。
+19项测试全部通过，无跳过；新增真实ChatClient+Mock ChatModel测试和缺Key错误隔离测试。没有发送真实模型请求，没有消耗收费API；真实模型集成尚未验证。
+面试回答：我通过Spring AI ChatClient统一模型调用，底层地址、模型名与Key由环境提供，默认Mock便于本地开发。AI失败只影响AI接口，传统点餐流程独立运行。面试问题：ChatClient解决什么？兼容API意味着什么？为什么Mock不能证明真实模型效果？System/User Prompt如何区分？
