@@ -572,3 +572,11 @@ POST /user/ai/chat/stream通过SseEmitter发送delta/done/error，后端从ChatC
 流式任务使用最多4线程、16队列，45秒Emitter超时、模型流40秒无数据超时、16000字符上限；断开/超时取消任务并关闭上游Stream，失败半截内容不写Memory。身份由认证线程捕获，通过后端ToolContext传给工具，ToolContext不在模型schema中，工具线程finally恢复/清理UserContext。
 后端29项全通过，无跳过；包含真实随机端口HTTP SSE事件验证、取消、跨线程工具身份清理。前端npm run build通过。真实收费模型流未验证，浏览器完整交互最终再检查。
 面试回答：SSE是服务端到浏览器的单向事件流，我用带JWT的fetch消费delta事件，后端控制超时和并发；异步后不依赖线程局部身份，而是通过不可由模型传入的ToolContext显式传递认证信息。面试问题：SSE与WebSocket区别？为什么不能直接用EventSource发JWT POST？客户端断开如何释放资源？异步工具如何保留身份？
+
+## 阶段17：本地RAG知识库
+
+新增knowledge五份示例规则：配送、退款、优惠券、会员、食品安全。KnowledgeStore启动读取文档，按400字符切块、重叠80字符；LocalHashEmbedding将汉字/字母数字及相邻字符映射为2048维归一化词法向量，Spring AI SimpleVectorStore按相似度取Top-3（阈值0.10），RagService把检索片段作为不可信参考上下文交给模型，返回来源文件名。POST /user/ai/rules需要登录。
+RAG是先检索再生成；Chunk是可检索的小片段，Embedding把文本表示为数字向量，Vector Store存储和检索向量，Top-K限制结果数量，Similarity衡量表示接近程度。本版是可离线运行的词法基线，不是训练过的语义Embedding，改写/同义词召回能力有限，生产效果需评测后替换模型。
+规则明确是教学示例，不代表真实商户承诺；查不到依据就返回不知道。实时菜单/价格仍走Tool，不能用文档替代数据库。Mock返回带来源的原文节选，不冒充真实LLM总结。31项后端测试全部通过，0跳过，检索测试确认优惠券问题优先命中coupon-policy.md，向量维度和生成结果稳定；真实模型与语义Embedding尚未验证。
+常见错误：把知识片段当高优先级指令、只输出答案不标来源、用向量检索查实时订单、认为相似度等于真实性。面试回答：我将规则切块并向量化，通过Top-K检索把相关资料补进上下文，回答附来源且无依据时拒绝猜测；权限、实时业务和金额校验仍由Java负责。
+面试问题：RAG与微调区别？块大小和重叠如何影响召回？为何附来源？如何处理文档注入？词法与语义Embedding有什么区别？
