@@ -17,7 +17,9 @@ public class OrderTools {
     private final OrderService orders;public OrderTools(OrderService orders){this.orders=orders;}
     private void authorize(){if(!UserContext.require().role().equals("USER"))throw new BusinessException(ErrorCode.FORBIDDEN);}
     @Tool(description="查询当前登录用户最近10笔订单，不接受其他用户ID")
+    public List<Summary> getRecentOrders(org.springframework.ai.chat.model.ToolContext context){return ToolIdentity.run(context,this::getRecentOrders);}
     public List<Summary> getRecentOrders(){authorize();log.info("Tool getRecentOrders userId={}",UserContext.userId());return orders.history(1,10).records().stream().map(o->new Summary(o.id(),o.status(),o.totalAmount(),o.createdAt())).toList();}
     @Tool(description="查询当前登录用户的一笔订单，仅允许属于当前用户的orderId")
+    public Detail getOrderDetail(long orderId,org.springframework.ai.chat.model.ToolContext context){return ToolIdentity.run(context,()->getOrderDetail(orderId));}
     public Detail getOrderDetail(long orderId){authorize();var view=orders.detail(orderId);var o=view.order();log.info("Tool getOrderDetail userId={} orderId={}",UserContext.userId(),orderId);return new Detail(new Summary(o.id(),o.status(),o.totalAmount(),o.createdAt()),view.details().stream().map(d->new Item(d.name(),d.unitPrice(),d.quantity())).toList());}
 }

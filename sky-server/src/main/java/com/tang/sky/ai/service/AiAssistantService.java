@@ -30,7 +30,27 @@ public class AiAssistantService {
         return replyMessages(java.util.List.of(new org.springframework.ai.chat.messages.UserMessage(message)));
     }
     protected String replyMessages(java.util.List<org.springframework.ai.chat.messages.Message> messages){
-        try{var request=client.prompt().system(prompts.ordering()).messages(messages);if(!tools.isEmpty())request.tools(tools.toArray());return request.call().content();}
+        try{return request(messages).call().content();}
         catch(RuntimeException e){log.warn("AI request failed type={}",e.getClass().getSimpleName());throw new BusinessException(ErrorCode.AI_UNAVAILABLE);}
+    }
+    protected ChatClient.ChatClientRequestSpec request(java.util.List<org.springframework.ai.chat.messages.Message> messages){
+        var request=client.prompt().system(prompts.ordering()).messages(messages);
+        if(!tools.isEmpty())request.tools(tools.toArray());
+        var identity=UserContext.currentOrNull();if(identity!=null)request.toolContext(java.util.Map.of("identity",identity));return request;
+    }
+    public com.tang.sky.ai.model.ChatModels.Reply streamChat(com.tang.sky.ai.model.ChatModels.Request input,java.util.function.Consumer<String> delta,java.util.function.BooleanSupplier cancelled){
+        long user=UserContext.userId();String conversation=input.conversationId()==null?java.util.UUID.randomUUID().toString():input.conversationId();
+        String answer=memory.exchange(user,conversation,input.message(),messages->{
+            var text=new StringBuilder();
+            // 从模型真实流读取；Stream关闭会取消上游订阅，取消/失败时不把半截回复写入Memory。
+            try(var stream=request(messages).stream().content().timeout(java.time.Duration.ofSeconds(40)).toStream()){
+                var iterator=stream.iterator();while(iterator.hasNext()){
+                    if(cancelled.getAsBoolean()||Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException();
+                    String chunk=iterator.next();text.append(chunk);if(text.length()>16000)throw new BusinessException(ErrorCode.AI_UNAVAILABLE);delta.accept(chunk);
+                }
+            }
+            if(cancelled.getAsBoolean())throw new java.util.concurrent.CancellationException();return text.toString();
+        });
+        return new com.tang.sky.ai.model.ChatModels.Reply(conversation,answer,mode);
     }
 }

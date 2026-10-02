@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api } from './api'
 import { useSession } from './stores/session'
+import ChatPanel from './ChatPanel.vue'
 
 const session = useSession()
 const tab = ref('menu'), error = ref(''), busy = ref(false), registration = ref(false)
@@ -66,7 +67,7 @@ onUnmounted(() => window.removeEventListener('sky-unauthorized', session.logout)
     </section>
     <template v-else>
       <el-tabs v-model="tab" @tab-change="changeTab">
-        <el-tab-pane label="今日菜单" name="menu" /><el-tab-pane label="购物车" name="cart" /><el-tab-pane label="我的订单" name="orders" />
+        <el-tab-pane label="今日菜单" name="menu" /><el-tab-pane label="购物车" name="cart" /><el-tab-pane label="我的订单" name="orders" /><el-tab-pane label="AI点餐助手" name="ai" />
       </el-tabs>
       <section v-if="tab === 'menu'">
         <div class="section-head"><h2>选择你的好味道</h2><el-select v-model="category" clearable placeholder="全部菜品分类" style="width:220px" @change="page = 1; run(menu)"><el-option v-for="c in categories.filter(c => c.type === 1)" :key="c.id" :label="c.name" :value="c.id" /></el-select></div>
@@ -84,6 +85,7 @@ onUnmounted(() => window.removeEventListener('sky-unauthorized', session.logout)
         <h2>我的订单</h2><el-empty v-if="!orders.length" description="还没有订单" /><article v-for="order in orders" :key="order.id" class="card order"><div><b>{{ statusNames[order.status] }}</b><p>{{ order.number }}</p><p>{{ order.createdAt }} · ¥{{ order.totalAmount }}</p></div><div><el-button @click="run(async () => selectedOrder = await api.get(`/user/orders/${order.id}`))">详情</el-button><el-button @click="run(() => reorder(order.id))">再次下单</el-button><el-button v-if="['PENDING_PAYMENT','WAITING_ACCEPT'].includes(order.status)" type="danger" plain @click="run(() => cancelOrder(order.id))">取消</el-button></div></article>
         <el-pagination v-model:current-page="orderPage" :page-size="10" :total="orderTotal" layout="prev, pager, next" @current-change="run(loadOrders)" />
       </section>
+      <ChatPanel v-else-if="tab === 'ai'" />
     </template>
     <el-dialog :model-value="!!selectedOrder" title="订单详情" @close="selectedOrder = null"><template v-if="selectedOrder"><p>{{ selectedOrder.order.address }}</p><p>{{ selectedOrder.order.contact }}</p><p v-for="line in selectedOrder.details" :key="line.id">{{ line.name }} × {{ line.quantity }} · 单价 ¥{{ line.unitPrice }}</p></template></el-dialog>
     <footer>苍穹智膳 · Java 后端与大模型应用学习项目</footer>

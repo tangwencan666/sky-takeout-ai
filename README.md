@@ -172,3 +172,5 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 阶段14已实现内存多轮记忆：认证用户+会话ID隔离、最近20条、闲置30分钟、最多1000会话。相同conversationId连续请求会携带历史，重启清空。
 
 阶段15：POST /user/ai/meal-plan，body为message和可选budget。返回Java核验的dishIds/dishes/totalPrice/budget；Mock仅演示预算选菜。预算不明确返回400，不根据猜测下单。
+
+阶段16：POST /user/ai/chat/stream返回delta/done/error SSE事件；Vue AI页支持流式显示、停止生成、预算套餐卡片和真实API加购。后端真实HTTP Mock流已验收，真实模型流未验证。

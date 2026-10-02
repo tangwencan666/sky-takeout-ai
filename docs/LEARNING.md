@@ -565,3 +565,10 @@ LLM本身不记得独立HTTP请求，后端必须把历史重新随本次输入�
 Java重新读取每道菜的可售状态与价格，拒绝重复/不存在/候选外ID、空方案、超过10道或总价超预算，输出AiMealPlan(reason,dishIds,dishes,totalPrice,budget,mode)。每个ID代表一份，最终加购仍是普通购物车API，计划不写订单。Mock按预算选真实候选并明确不具备自然语言口味理解。
 26项测试通过无跳过，包含BeanOutputConverter结构化转换、准确核价与拒绝路径。真实模型套餐效果尚未验证。String不适合后续业务，因为提取ID/金额不可靠；结构化只是格式约束，不保证事实正确，所以必须业务校验。
 面试回答：模型只提出菜品ID和理由，我用结构化输出映射草案，再查询数据库核对ID、上架状态和价格，BigDecimal重算总额并对照明确预算，最后返回可供前端渲染的菜品卡片。面试问题：JSON合法等于业务合法吗？为何不相信模型总价？预算不清楚怎么办？怎样防推荐不存在菜品？
+
+## 阶段16：SSE流式聊天
+
+POST /user/ai/chat/stream通过SseEmitter发送delta/done/error，后端从ChatClient.stream读取模型流，不把完整真实模型回复伪装成逐字流。默认Mock提供可测试的流式协议。前端fetch使用POST、Authorization、TextDecoder和跨包缓冲解析SSE，支持AbortController停止生成；菜品卡片加购仍调用普通API。
+流式任务使用最多4线程、16队列，45秒Emitter超时、模型流40秒无数据超时、16000字符上限；断开/超时取消任务并关闭上游Stream，失败半截内容不写Memory。身份由认证线程捕获，通过后端ToolContext传给工具，ToolContext不在模型schema中，工具线程finally恢复/清理UserContext。
+后端29项全通过，无跳过；包含真实随机端口HTTP SSE事件验证、取消、跨线程工具身份清理。前端npm run build通过。真实收费模型流未验证，浏览器完整交互最终再检查。
+面试回答：SSE是服务端到浏览器的单向事件流，我用带JWT的fetch消费delta事件，后端控制超时和并发；异步后不依赖线程局部身份，而是通过不可由模型传入的ToolContext显式传递认证信息。面试问题：SSE与WebSocket区别？为什么不能直接用EventSource发JWT POST？客户端断开如何释放资源？异步工具如何保留身份？

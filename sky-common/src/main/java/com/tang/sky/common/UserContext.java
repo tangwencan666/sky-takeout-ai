@@ -6,6 +6,7 @@ public final class UserContext {
     private static final ThreadLocal<Identity> CURRENT = new ThreadLocal<>();
     private UserContext() {}
     public static void set(Identity identity) { CURRENT.set(identity); }
+    public static Identity currentOrNull() { return CURRENT.get(); }
     public static Identity require() {
         Identity identity = CURRENT.get();
         if (identity == null) throw new BusinessException(ErrorCode.UNAUTHORIZED);
