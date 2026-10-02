@@ -2,6 +2,13 @@ server:
   port: ${SERVER_PORT:8080}
 
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
+      connect-timeout: 2s
   application:
     name: sky-takeout-ai
   datasource:
@@ -17,3 +24,8 @@ spring:
     init:
       # 不在应用启动时隐式执行建库建表脚本；本阶段建库由用户明确执行。
       mode: never
+
+sky:
+  cache:
+    # 未准备Redis也能开发传统业务；启用后只缓存公开菜单列表，不缓存订单/个人信息。
+    enabled: ${CACHE_ENABLED:false}

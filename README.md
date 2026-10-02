@@ -154,3 +154,5 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 阶段6：GET/POST/DELETE /user/cart，PATCH /user/cart/{id}/reduce，DELETE /user/cart/{id}。添加body为itemType(DISH/SETMEAL)、itemId、flavor、quantity；返回items、totalPrice与checkoutAllowed。
 
 阶段7：POST /user/orders接收requestKey/address/contact；GET /user/orders及/{id}；POST /{id}/cancel、/{id}/again。管理员PUT /admin/orders/{id}/status?status=WAITING_ACCEPT等按顺序流转，仅模拟状态，不接入真实支付。
+
+阶段8：设置CACHE_ENABLED=true启用公开菜单Redis缓存；REDIS_HOST默认127.0.0.1，REDIS_PORT默认6379。支持REDIS_PASSWORD。分类TTL10分钟、菜品第一页TTL120秒；订单核价绕过缓存。
