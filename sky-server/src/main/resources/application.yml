@@ -1,0 +1,19 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: sky-takeout-ai
+  datasource:
+    # 数据库名固定为新项目库，防止误配置到旧库 sky_take_out；只开放主机与端口配置。
+    # 公钥获取用于本机开发认证；后续部署单独配置 TLS，不将本机连接参数照搬到生产。
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/sky_takeout_ai?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&sslMode=DISABLED&allowPublicKeyRetrieval=true&connectTimeout=5000&socketTimeout=10000
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 5000
+  sql:
+    init:
+      # 不在应用启动时隐式执行建库建表脚本；本阶段建库由用户明确执行。
+      mode: never
