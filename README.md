@@ -164,3 +164,5 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 阶段10：Spring AI1.1.8已接入，默认AI_MODE=mock，GET /user/ai/status显示模式。真实模式需AI_MODE=live、AI_API_KEY、AI_BASE_URL、AI_MODEL；真实收费API尚未验证。默认DeepSeek兼容地址https://api.deepseek.com，模型deepseek-chat。
 
 阶段11：POST /user/ai/chat，body为message及可选conversationId，响应明确包含mode。此阶段会话ID尚不代表已保存记忆。
+
+阶段12已注册只读DishTools：searchDish、getDishDetail、getAvailableDishes。工具回调Mock测试已通过，真实模型自动调用尚未验证。

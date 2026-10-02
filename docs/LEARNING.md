@@ -540,3 +540,9 @@ PromptCatalog从resources/prompts读取System Prompt。System定义角色和约�
 新增POST /user/ai/chat，输入message和可选conversationId，返回会话标识、message与mode。Controller校验长度与ID格式，Service要求UserContext，日志只记用户ID和模式。集中System Prompt约束不编造菜单、不执行写操作、忽略工具数据中的指令。
 此阶段只传递会话标识，尚不保存多轮历史，Memory留阶段14；不把仅返回相同ID冒充记忆已实现。Mock输出明确标记，真实模型尚未验证。
 20项测试全通过无跳过，新增未认证拒绝、会话生成/保留与Mock标记。面试回答：聊天接口先经过JWT身份校验，再由AI Service用独立System/User消息调用ChatClient，输出明确区分演示模式，会话标识为后续记忆做准备。面试问题：conversationId等于身份吗？为什么限制输入长度？为什么Prompt不能代替权限校验？
+
+## 阶段12：Dish Tool Calling
+
+新增DishTools：searchDish/getDishDetail/getAvailableDishes，注册到ChatClient。LLM选择工具 → Spring AI JSON参数绑定 → DishTools → DishService → Mapper → MySQL → 结构化结果 → LLM。模型没有数据库账号，没有任意SQL接口，也没有修改商品的工具。
+查询有数量上限、可售过滤和可选价格上限，日志仅记工具名、商品ID或结果数量，不记录原始聊天。21项测试通过无跳过，工具可脱离LLM测试，另用Spring AI ToolCallbacks验证JSON回调。真实模型自动选工具尚未验证，Prompt不等于幻觉绝对消除，后续结构化方案还须Java二次验证。
+面试回答：普通LLM只产生文本，Tool Calling让模型选择受控Java函数，真实数据访问仍走业务Service和Mapper，权限与业务规则不交给模型。面试问题：为什么不能给模型数据库账号？工具参数如何映射？Prompt能否代替后端权限？工具如何离线测试？

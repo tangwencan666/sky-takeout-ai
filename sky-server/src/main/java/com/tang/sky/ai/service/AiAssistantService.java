@@ -11,6 +11,9 @@ import org.slf4j.*;
 public class AiAssistantService {
     private static final Logger log=LoggerFactory.getLogger(AiAssistantService.class);
     protected final ChatClient client;protected final PromptCatalog prompts;private final String mode;
+    protected final java.util.List<Object> tools=new java.util.ArrayList<>();
+    @org.springframework.beans.factory.annotation.Autowired
+    public void registerDishTools(com.tang.sky.ai.tool.DishTools dishTools){tools.add(dishTools);}
     public AiAssistantService(ChatModel model,PromptCatalog prompts,@Value("${AI_MODE:mock}")String mode){this.client=ChatClient.create(model);this.prompts=prompts;this.mode=mode;}
     public String mode(){return mode;}
     public com.tang.sky.ai.model.ChatModels.Reply chat(com.tang.sky.ai.model.ChatModels.Request input){
@@ -20,7 +23,7 @@ public class AiAssistantService {
         return new com.tang.sky.ai.model.ChatModels.Reply(conversation,reply(input.message()),mode);
     }
     public String reply(String message){
-        try{return client.prompt().system(prompts.ordering()).user(message).call().content();}
+        try{var request=client.prompt().system(prompts.ordering()).user(message);if(!tools.isEmpty())request.tools(tools.toArray());return request.call().content();}
         catch(RuntimeException e){log.warn("AI request failed type={}",e.getClass().getSimpleName());throw new BusinessException(ErrorCode.AI_UNAVAILABLE);}
     }
 }
