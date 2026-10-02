@@ -150,3 +150,5 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 用户GET /user/categories、/user/dishes、/user/dishes/{id}；列表支持categoryId/keyword/page/size。后台/admin/categories支持GET/POST/PUT/{id}/DELETE/{id}，/admin/dishes支持相同CRUD及PUT /{id}/status?status=0或1。所有后台操作要求ADMIN。详情为data.dish与data.flavors，列表为data.records。
 
 阶段5接口：用户GET /user/setmeals及/{id}；管理员/admin/setmeals支持GET/POST/PUT/{id}/DELETE/{id}及PUT /{id}/status?status=1。详情返回data.setmeal与data.dishes；创建body包含categoryId/name/price/description/dishes:[{dishId,quantity}]。
+
+阶段6：GET/POST/DELETE /user/cart，PATCH /user/cart/{id}/reduce，DELETE /user/cart/{id}。添加body为itemType(DISH/SETMEAL)、itemId、flavor、quantity；返回items、totalPrice与checkoutAllowed。

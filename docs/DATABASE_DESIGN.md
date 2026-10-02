@@ -59,3 +59,5 @@ sql/02_auth.sql只在sky_takeout_ai创建user、employee。username唯一，pass
 sql/03_catalog.sql创建category、dish、dish_flavor；category.type=1菜品/2套餐，status=0下架/1上架。dish.category_id和dish_flavor.dish_id有外键，价格DECIMAL(10,2)。
 
 阶段5：sql/04_setmeal.sql新增setmeal与setmeal_dish，主表关联套餐分类，中间表用唯一键与双外键保持N:N关系。
+
+阶段6：sql/05_cart.sql创建shopping_cart；item_type区分DISH/SETMEAL，商品引用在Service校验，user_id为外键；数量1至99，同用户同商品口味唯一。
