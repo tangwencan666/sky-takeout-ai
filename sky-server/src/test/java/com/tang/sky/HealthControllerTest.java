@@ -21,6 +21,7 @@ class HealthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("SkyTakeout AI is running"));
+                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(jsonPath("$.data.status").value("SkyTakeout AI is running"));
     }
 }

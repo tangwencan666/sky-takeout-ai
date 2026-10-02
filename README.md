@@ -2,7 +2,7 @@
 
 基于 Spring Boot + Vue3 + Spring AI 的智能外卖平台。
 
-当前阶段：阶段1已验收，基础后端架构与独立数据库已就绪。Vue3、AI均为 **Planned**，尚未实现。
+当前阶段：阶段2已验收，统一返回与异常处理已实现。Vue3、AI均为 **Planned**，尚未实现。
 
 已实测：启用RUN_DB_TESTS后父工程和三个模块的`mvn clean test`成功，两个测试通过且Skipped=0；可执行jar打包及实际HTTP /health验证通过。新库sky_takeout_ai已创建，catalog断言通过。
 
@@ -117,7 +117,7 @@ mvn -pl sky-server spring-boot:run
 Invoke-RestMethod http://127.0.0.1:8080/health
 ```
 
-预期JSON：`{"code":200,"message":"SkyTakeout AI is running"}`，字段顺序不重要。
+预期JSON：`{"code":200,"message":"success","data":{"status":"SkyTakeout AI is running"}}`，字段顺序不重要。
 这个接口只验证Web存活。Hikari数据源可延迟建立连接，因此应用启动及/health成功都不能替代DatabaseConnectionTest。
 测试与使用结束后可在原终端执行`Remove-Item Env:DB_PASSWORD`、`Remove-Item Env:RUN_DB_TESTS`清除临时值，或关闭终端。
 
@@ -134,3 +134,4 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 
 阶段2：Result、业务异常、全局异常处理、基础参数校验。后续再按顺序开发业务、Redis、Vue、Spring AI与RAG。
 学习说明和当前实测结果见[LEARNING.md](docs/LEARNING.md)，数据库规划见[DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md)。
+

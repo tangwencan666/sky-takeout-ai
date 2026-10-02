@@ -458,3 +458,12 @@ HealthControllerTest只加载MVC层，验证路由、HTTP状态与JSON字段，�
 通过当前进程已有DB_PASSWORD临时凭据认证，先查询information_schema确认sky_takeout_ai不存在，再校验脚本仅包含预期CREATE DATABASE语句后执行。SHOW CREATE DATABASE确认utf8mb4/utf8mb4_0900_ai_ci；没有业务表，没有访问或写入旧库。
 显式开启RUN_DB_TESTS=true运行mvn clean test：HealthControllerTest与DatabaseConnectionTest均通过，Tests=2、Failures=0、Errors=0、Skipped=0，父工程及三个模块均SUCCESS。DataSource连接catalog严格为sky_takeout_ai。阶段1全部验收通过，进入阶段2。
 密码只从环境变量读取，没有放入脚本、配置、源码或日志。Git提交前检查所有候选文件是否包含当前临时凭据，不输出凭据本身。
+
+## 阶段2：统一返回与异常处理
+
+实现Result<T>、ErrorCode、BusinessException和GlobalExceptionHandler。/health现在使用code/message/data信封；HTTP状态同时表达失败类别，前端不必猜测业务返回格式。
+调用链：DispatcherServlet → Controller → Result；抛出异常时由RestControllerAdvice转换响应。校验失败不回显原输入，未知异常只返回通用错误，日志仅记录异常类型。Controller不需要重复try-catch。
+核心代码：sky-common/common中的Result与错误类型、sky-server/handler/GlobalExceptionHandler。常见错误是所有异常返回HTTP200、把SQL消息或密码字段返回客户端。
+实测mvn clean test：6项通过，0失败、0错误、0跳过，包含真实数据库连接。新增测试覆盖业务异常、空输入、非法JSON及未知异常不泄露；没有为了通过而禁用测试。
+面试回答：我用统一泛型结果让前端稳定读取code/message/data，通过全局Advice集中处理业务、校验和未知异常，既保留HTTP状态语义，又避免每个Controller重复捕获和泄露底层信息。
+面试问题：统一返回与HTTP状态如何配合？Advice何时执行？为什么不直接返回异常message？参数校验应该放哪里？
