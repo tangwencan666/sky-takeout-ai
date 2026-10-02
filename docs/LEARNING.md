@@ -580,3 +580,11 @@ RAG是先检索再生成；Chunk是可检索的小片段，Embedding把文本表
 规则明确是教学示例，不代表真实商户承诺；查不到依据就返回不知道。实时菜单/价格仍走Tool，不能用文档替代数据库。Mock返回带来源的原文节选，不冒充真实LLM总结。31项后端测试全部通过，0跳过，检索测试确认优惠券问题优先命中coupon-policy.md，向量维度和生成结果稳定；真实模型与语义Embedding尚未验证。
 常见错误：把知识片段当高优先级指令、只输出答案不标来源、用向量检索查实时订单、认为相似度等于真实性。面试回答：我将规则切块并向量化，通过Top-K检索把相关资料补进上下文，回答附来源且无依据时拒绝猜测；权限、实时业务和金额校验仍由Java负责。
 面试问题：RAG与微调区别？块大小和重叠如何影响召回？为何附来源？如何处理文档注入？词法与语义Embedding有什么区别？
+
+## 阶段18：管理员AI经营分析
+
+新增AdminAiController /admin/ai/chat（message、days=1..90），StatisticsTools提供getTopSellingDishes、getOrderTrend、getRevenueStatistics。链路：管理员JWT → AdminAiService → 独立StatisticsTools → StatisticsService再次验ADMIN → StatisticsMapper固定参数化SQL。用户AI未注册管理员工具，异步ToolContext只接受后端身份，finally恢复上下文。
+口径：Asia/Shanghai近N个自然日按订单创建日期统计；趋势包含全部状态并补零日期；金额与单品销量仅当前COMPLETED订单，套餐不拆成单品销量。金额不是实收款，因为没有真实支付系统。返回原始汇总便于核对，Mock解释使用真实数据库数字并显式标注。
+33项后端测试全部通过，0跳过。新增真实SQL验证待付款不计入金额、完成后金额增加25元、销量2份、趋势补齐7天、普通用户/越界天数拒绝与工具schema无身份参数。未新增评价系统，因此不假造getNegativeReviews。统计暂无专门汇总表，数据量大后可加索引/预聚合，不能用教学数据证明大规模性能。
+常见错误：把所有订单总额当收入、让模型拼SQL、仅Controller验权限、把未实现的评价当真实数据。面试回答：经营AI只能调用经过审查的聚合查询，角色在路由和Service双重验证；统计口径明确，结果不含用户地址，模型只能解释而不能改订单。
+面试问题：收入口径如何定义？用户AI能否访问统计？固定工具比生成SQL有什么好处？日期零值为什么要补？

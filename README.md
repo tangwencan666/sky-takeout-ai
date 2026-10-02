@@ -178,3 +178,7 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 ### RAG规则问答
 
 POST /user/ai/rules，输入message，返回answer、sources、embeddingMode和modelMode。知识位于knowledge/，使用本地2048维词法Embedding + SimpleVectorStore，无外部费用。示例规则只用于教学，语义召回和真实模型问答尚未验收。
+
+### 管理员AI分析
+
+POST /admin/ai/chat，输入message和days（1..90），仅ADMIN。三类受控工具统计单品销量、每日订单趋势、已完成订单金额。金额是教学统计，非真实收款，普通用户AI无法调用。
