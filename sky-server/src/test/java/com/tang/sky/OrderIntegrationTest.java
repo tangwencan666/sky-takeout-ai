@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest @Transactional @EnabledIfEnvironmentVariable(named="RUN_DB_TESTS",matches="true")
 class OrderIntegrationTest {
     @Autowired OrderService orders;@Autowired CartService cart;@Autowired DishService dishes;@Autowired AuthService auth;
+    @Autowired com.tang.sky.ai.tool.OrderTools orderTools;
     long user;long dish;
     @BeforeEach void setup(){String suffix=UUID.randomUUID().toString().replace("-", "").substring(0,16);user=auth.register(new Credentials("o"+suffix,"OrderTest!29")).id();UserContext.set(new UserContext.Identity(user,"USER"));long c=dishes.createCategory(new CategoryInput("订单菜",1,0));dish=dishes.create(new DishInput(c,"鸡肉",new BigDecimal("19.50"),"","",List.of()));dishes.status(dish,1);}
     @AfterEach void clean(){UserContext.clear();}
@@ -26,6 +27,7 @@ class OrderIntegrationTest {
         assertEquals(0,new BigDecimal("39.00").compareTo(order.order().totalAmount()));assertEquals(2,order.details().get(0).quantity());assertTrue(cart.view().items().isEmpty());
         assertEquals(order.order().id(),orders.create(input).order().id());assertEquals(1,orders.history(1,20).total());
         UserContext.set(new UserContext.Identity(user+999999,"USER"));assertThrows(BusinessException.class,()->orders.detail(order.order().id()));
+        assertThrows(BusinessException.class,()->orderTools.getOrderDetail(order.order().id()));
         UserContext.set(new UserContext.Identity(user,"USER"));orders.cancel(order.order().id());assertEquals("CANCELLED",orders.detail(order.order().id()).order().status());orders.again(order.order().id());assertEquals(2,cart.view().items().get(0).quantity());
     }
     @Test void legalStateMachineAndUnavailableCart(){

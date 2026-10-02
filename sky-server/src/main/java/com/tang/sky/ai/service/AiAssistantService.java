@@ -14,6 +14,8 @@ public class AiAssistantService {
     protected final java.util.List<Object> tools=new java.util.ArrayList<>();
     @org.springframework.beans.factory.annotation.Autowired
     public void registerDishTools(com.tang.sky.ai.tool.DishTools dishTools){tools.add(dishTools);}
+    @org.springframework.beans.factory.annotation.Autowired
+    public void registerPrivateTools(com.tang.sky.ai.tool.OrderTools orders,com.tang.sky.ai.tool.CartTools cart){tools.add(orders);tools.add(cart);}
     public AiAssistantService(ChatModel model,PromptCatalog prompts,@Value("${AI_MODE:mock}")String mode){this.client=ChatClient.create(model);this.prompts=prompts;this.mode=mode;}
     public String mode(){return mode;}
     public com.tang.sky.ai.model.ChatModels.Reply chat(com.tang.sky.ai.model.ChatModels.Request input){

@@ -166,3 +166,5 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 阶段11：POST /user/ai/chat，body为message及可选conversationId，响应明确包含mode。此阶段会话ID尚不代表已保存记忆。
 
 阶段12已注册只读DishTools：searchDish、getDishDetail、getAvailableDishes。工具回调Mock测试已通过，真实模型自动调用尚未验证。
+
+阶段13：只读OrderTools与CartTools已注册；订单返回模型前去除地址和联系人。工具权限、schema及真实订单隔离测试通过，真实LLM调用尚未验证。

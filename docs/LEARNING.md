@@ -546,3 +546,9 @@ PromptCatalog从resources/prompts读取System Prompt。System定义角色和约�
 新增DishTools：searchDish/getDishDetail/getAvailableDishes，注册到ChatClient。LLM选择工具 → Spring AI JSON参数绑定 → DishTools → DishService → Mapper → MySQL → 结构化结果 → LLM。模型没有数据库账号，没有任意SQL接口，也没有修改商品的工具。
 查询有数量上限、可售过滤和可选价格上限，日志仅记工具名、商品ID或结果数量，不记录原始聊天。21项测试通过无跳过，工具可脱离LLM测试，另用Spring AI ToolCallbacks验证JSON回调。真实模型自动选工具尚未验证，Prompt不等于幻觉绝对消除，后续结构化方案还须Java二次验证。
 面试回答：普通LLM只产生文本，Tool Calling让模型选择受控Java函数，真实数据访问仍走业务Service和Mapper，权限与业务规则不交给模型。面试问题：为什么不能给模型数据库账号？工具参数如何映射？Prompt能否代替后端权限？工具如何离线测试？
+
+## 阶段13：订单与购物车只读工具
+
+新增OrderTools.getRecentOrders/getOrderDetail与CartTools.getShoppingCart/calculateCartPrice。工具schema没有userId，JWT → UserContext → Service按归属查询，模型不能选择其他用户；只有USER身份可用。订单输出去掉地址、联系人、请求幂等键，仅保留所需摘要和明细。
+22项测试通过无跳过，包含工具无身份拒绝、schema检查和真实数据库中用户A不能读取其他用户订单的工具回归。工具未提供下单/取消/加购/支付，因此模型文本不会直接触发写入。
+面试回答：私有数据工具从后端认证上下文取身份，查询仍走原订单Service的归属过滤，并在返回模型前移除非必要个人信息。面试问题：为什么不能让模型传userId？JWT与conversationId区别？工具输出为什么要脱敏？写工具如何二次确认？
