@@ -162,3 +162,5 @@ Invoke-RestMethod http://127.0.0.1:8080/health
 进入sky-web执行npm ci、npm run dev，访问终端显示地址；后端默认8080，Vite将/api代理到后端。生产构建npm run build。当前包含注册登录、菜单、购物车及订单页面；需要管理员录入上架商品后菜单才有内容。没有自动塞入虚假业务数据。
 
 阶段10：Spring AI1.1.8已接入，默认AI_MODE=mock，GET /user/ai/status显示模式。真实模式需AI_MODE=live、AI_API_KEY、AI_BASE_URL、AI_MODEL；真实收费API尚未验证。默认DeepSeek兼容地址https://api.deepseek.com，模型deepseek-chat。
+
+阶段11：POST /user/ai/chat，body为message及可选conversationId，响应明确包含mode。此阶段会话ID尚不代表已保存记忆。

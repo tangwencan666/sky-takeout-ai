@@ -8,4 +8,5 @@ import org.springframework.web.bind.annotation.*;
 public class AiAssistantController {
     private final AiAssistantService service;public AiAssistantController(AiAssistantService service){this.service=service;}
     @GetMapping("/status")public Result<Map<String,String>> status(){return Result.success(Map.of("mode",service.mode()));}
+    @PostMapping("/chat")public Result<com.tang.sky.ai.model.ChatModels.Reply> chat(@jakarta.validation.Valid @RequestBody com.tang.sky.ai.model.ChatModels.Request input){return Result.success(service.chat(input));}
 }

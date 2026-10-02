@@ -13,6 +13,12 @@ public class AiAssistantService {
     protected final ChatClient client;protected final PromptCatalog prompts;private final String mode;
     public AiAssistantService(ChatModel model,PromptCatalog prompts,@Value("${AI_MODE:mock}")String mode){this.client=ChatClient.create(model);this.prompts=prompts;this.mode=mode;}
     public String mode(){return mode;}
+    public com.tang.sky.ai.model.ChatModels.Reply chat(com.tang.sky.ai.model.ChatModels.Request input){
+        long user=UserContext.userId();
+        String conversation=input.conversationId()==null?java.util.UUID.randomUUID().toString():input.conversationId();
+        log.info("AI chat userId={} mode={}",user,mode);
+        return new com.tang.sky.ai.model.ChatModels.Reply(conversation,reply(input.message()),mode);
+    }
     public String reply(String message){
         try{return client.prompt().system(prompts.ordering()).user(message).call().content();}
         catch(RuntimeException e){log.warn("AI request failed type={}",e.getClass().getSimpleName());throw new BusinessException(ErrorCode.AI_UNAVAILABLE);}

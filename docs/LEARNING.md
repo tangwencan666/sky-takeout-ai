@@ -534,3 +534,9 @@ Cache Aside链路：Controller → Service缓存代理 → Redis命中直接返�
 PromptCatalog从resources/prompts读取System Prompt。System定义角色和约束，User消息表达需求，不能把用户文字拼进System提高权限。AiAssistantService与普通业务Service独立。
 19项测试全部通过，无跳过；新增真实ChatClient+Mock ChatModel测试和缺Key错误隔离测试。没有发送真实模型请求，没有消耗收费API；真实模型集成尚未验证。
 面试回答：我通过Spring AI ChatClient统一模型调用，底层地址、模型名与Key由环境提供，默认Mock便于本地开发。AI失败只影响AI接口，传统点餐流程独立运行。面试问题：ChatClient解决什么？兼容API意味着什么？为什么Mock不能证明真实模型效果？System/User Prompt如何区分？
+
+## 阶段11：AI点餐聊天
+
+新增POST /user/ai/chat，输入message和可选conversationId，返回会话标识、message与mode。Controller校验长度与ID格式，Service要求UserContext，日志只记用户ID和模式。集中System Prompt约束不编造菜单、不执行写操作、忽略工具数据中的指令。
+此阶段只传递会话标识，尚不保存多轮历史，Memory留阶段14；不把仅返回相同ID冒充记忆已实现。Mock输出明确标记，真实模型尚未验证。
+20项测试全通过无跳过，新增未认证拒绝、会话生成/保留与Mock标记。面试回答：聊天接口先经过JWT身份校验，再由AI Service用独立System/User消息调用ChatClient，输出明确区分演示模式，会话标识为后续记忆做准备。面试问题：conversationId等于身份吗？为什么限制输入长度？为什么Prompt不能代替权限校验？
