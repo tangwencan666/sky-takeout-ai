@@ -676,4 +676,16 @@ Tool Calling的身份、归属和权限必须由Java决定；七个用户工具�
 
 62项后端测试全通过，新增4项覆盖正常就绪、认证失败、错误库、查询失败。随后用真实Chrome重新打开15173，以demo_user登录、刷新通过/user/me、浏览12菜4套餐、加入微辣宫保鸡丁28元并确认下单，详情正确；22次实际同源API全部200，无网络失败或JS异常。保留本地验收订单ID58，供用户在订单列表核对。旧库未读写。
 
+## 2026-10-03：DeepSeek真实模式切换准备
+
+仅设置AI_API_KEY、AI_BASE_URL、AI_MODEL不会切换Provider：代码必须AI_MODE=live；旧Start-Preview还无条件覆盖成mock。本轮修正为显式-AiMode live或继承当前AI_MODE，增加缺Key检查，不需要AI_ENABLED、AI_PROVIDER或额外profile。环境只向子进程传递，不把Key写入参数、文件或日志，不读取旧Sentinel的.env。
+
+按DeepSeek官方当日文档，默认模型更新为deepseek-flash，官方host上的已停用deepseek-chat/reasoner配置会明确报错。根地址及/v1都规范化为正确chat/completions路径；官方模型显式reasoning_effort=none关闭thinking，以控制最小验证开销并适配当前工具历史。详见[官方来源和启动命令](AI_LIVE_VERIFICATION.md)。
+
+新增独立最小探针：认证用户POST/user/ai/probe，唯一消息为你好，最多64输出token，无工具、Memory、RAG，不自动重试。成功在当前进程缓存，状态按instanceId记录，只读刷新不收费。界面分别显示Mock演示、真实模型待验证、真实模型已验证及状态获取失败；配置为live不等于实际连通。
+
+验证：Java17全量clean package为31类69项，0失败/错误/跳过；外部live+随机合成Key条件下Surefire仍强制Mock并清空测试环境Key。前端7项及构建通过。真实Chrome访问15173并登录，读取Mock状态，刷新无AI POST；四种真实模式/失败状态通过请求拦截验证展示，不冒充付费验证。安全停止预览、缺Key拒绝启动、Mock拒绝付费探针通过，已打包最新JAR并恢复15173→8080供切换。
+
+用户Key仍只在用户原PowerShell中；本轮没有实际DeepSeek调用，基础Probe和后续Dish Tool→Memory→Structured Output→RAG→Order Tool→SSE待启动live后依次完成。旧数据库sky_take_out未读写，新库仍为sky_takeout_ai。
+
 这次最重要的区别：存活（HTTP进程能响应）不等于就绪（业务依赖可用），源码测试通过也不证明另一个终端启动的旧进程继承了正确环境变量。CORS和JWT要看实际请求，不能见到500就猜跨域或放宽鉴权。完整记录和截图见[PREVIEW_FIX](PREVIEW_FIX.md)。

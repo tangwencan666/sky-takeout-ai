@@ -12,7 +12,7 @@ import com.tang.sky.ai.security.AiRequestAudit;
 public class AiAssistantService {
     private static final Logger log=LoggerFactory.getLogger(AiAssistantService.class);
     protected final ChatClient client;protected final PromptCatalog prompts;private final String mode;
-    @Value("${AI_MODEL:deepseek-chat}") private String modelName="deepseek-chat";
+    @Value("${AI_MODEL:deepseek-flash}") private String modelName="deepseek-flash";
     @Value("${AI_STREAM_IDLE_TIMEOUT_MS:40000}") private long streamIdleTimeoutMs=40000;
     protected final java.util.List<Object> tools=new java.util.ArrayList<>();
     protected final com.tang.sky.ai.memory.ConversationMemory memory=new com.tang.sky.ai.memory.ConversationMemory();

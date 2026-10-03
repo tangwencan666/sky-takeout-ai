@@ -14,7 +14,7 @@ public class RagService {
     public record Answer(String answer,List<String> sources,String embeddingMode,String modelMode){}
     private static final Logger log=LoggerFactory.getLogger(RagService.class);
     private final KnowledgeStore store;private final ChatClient client;private final PromptCatalog prompts;private final String mode;
-    @Value("${AI_MODEL:deepseek-chat}") private String modelName="deepseek-chat";
+    @Value("${AI_MODEL:deepseek-flash}") private String modelName="deepseek-flash";
     public RagService(KnowledgeStore store,ChatModel model,PromptCatalog prompts,@Value("${AI_MODE:mock}")String mode){this.store=store;this.client=ChatClient.create(model);this.prompts=prompts;this.mode=mode;}
     public Answer answer(String question){
         return answer(question,null);

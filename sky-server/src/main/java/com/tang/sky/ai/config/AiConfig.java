@@ -24,8 +24,11 @@ import java.io.IOException;
 public class AiConfig {
     @Bean public ChatModel chatModel(@Value("${AI_MODE:mock}")String mode,
             @Value("${AI_API_KEY:}")String key,@Value("${AI_BASE_URL:https://api.deepseek.com}")String baseUrl,
-            @Value("${AI_MODEL:deepseek-chat}")String model){
-        if(!"live".equals(mode))return new MockChatModel();
+            @Value("${AI_MODEL:deepseek-flash}")String model){
+        AiProviderConfiguration.validateMode(mode);
+        if("mock".equals(mode))return new MockChatModel();
+        var endpoint=AiProviderConfiguration.endpoint(baseUrl);
+        var options=AiProviderConfiguration.options(endpoint,model,2048);
         if(key.isBlank())return prompt->{throw new BusinessException(ErrorCode.AI_UNAVAILABLE);};
         var factory=new SimpleClientHttpRequestFactory();factory.setConnectTimeout(5000);factory.setReadTimeout(30000);
         var connector=new JdkClientHttpConnector(java.net.http.HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
@@ -39,13 +42,13 @@ public class AiConfig {
             public boolean hasError(ClientHttpResponse response)throws IOException{return response.getStatusCode().isError();}
             public void handleError(java.net.URI url,org.springframework.http.HttpMethod method,ClientHttpResponse response){throw new BusinessException(ErrorCode.AI_UNAVAILABLE);}
         };
-        var api=OpenAiApi.builder().baseUrl(baseUrl).apiKey(key).restClientBuilder(RestClient.builder().requestFactory(factory))
+        var api=OpenAiApi.builder().baseUrl(endpoint.baseUrl()).completionsPath(endpoint.completionsPath()).apiKey(key).restClientBuilder(RestClient.builder().requestFactory(factory))
             .webClientBuilder(webClient).responseErrorHandler(errors).build();
         // 教学环境不自动重试付费请求；工具失败直接终止，避免模型反复重试失败工具。
         var manager=DefaultToolCallingManager.builder()
             .toolExecutionExceptionProcessor(new DefaultToolExecutionExceptionProcessor(true)).build();
         return OpenAiChatModel.builder().openAiApi(api).retryTemplate(RetryTemplate.builder().maxAttempts(1).build())
             .toolCallingManager(manager)
-            .defaultOptions(OpenAiChatOptions.builder().model(model).temperature(0.3).maxTokens(2048).build()).build();
+            .defaultOptions(options).build();
     }
 }

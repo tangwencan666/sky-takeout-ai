@@ -35,6 +35,20 @@
     "skipped": 0
   },
   {
+    "name": "com.tang.sky.AiProviderConfigurationTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "name": "com.tang.sky.AiProviderServiceTest",
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
     "name": "com.tang.sky.AiSecurityTest",
     "tests": 3,
     "failures": 0,

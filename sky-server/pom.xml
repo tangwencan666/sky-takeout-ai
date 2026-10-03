@@ -37,7 +37,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration><systemPropertyVariables><AI_MODE>mock</AI_MODE><AI_API_KEY></AI_API_KEY></systemPropertyVariables></configuration>
+                <configuration>
+                    <systemPropertyVariables><AI_MODE>mock</AI_MODE><AI_API_KEY></AI_API_KEY></systemPropertyVariables>
+                    <!-- 同时隔离fork测试进程的环境，System.getenv也不能继承终端中的付费模型配置。 -->
+                    <environmentVariables><AI_MODE>mock</AI_MODE><AI_API_KEY></AI_API_KEY></environmentVariables>
+                </configuration>
             </plugin>
             <!-- 只有运行模块需要打包为可执行 Boot jar，公共 jar 不应用这个插件。 -->
             <plugin>

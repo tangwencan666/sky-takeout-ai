@@ -1,0 +1,16 @@
+{
+  "result": "PASS",
+  "actualBackend": {
+    "mode": "mock",
+    "providerVerified": false,
+    "model": "deepseek-flash"
+  },
+  "simulatedUiStates": [
+    "真实模型 · 待验证",
+    "真实模型 · 已验证",
+    "missing-key-disabled",
+    "status-unavailable-disabled"
+  ],
+  "aiPostRequests": 0,
+  "pageErrors": []
+}

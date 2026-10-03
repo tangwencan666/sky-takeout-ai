@@ -1,6 +1,6 @@
 # 最终测试记录
 
-日期：2026-10-03（Asia/Shanghai）。本轮最终命令：RUN_DB_TESTS=true，mvn -B -ntp clean package，Java17；AI_MODE=mock，AI_API_KEY为空，JWT_SECRET为临时环境随机密钥。Surefire同样强制Mock，未调用真实供应商。
+日期：2026-10-03（Asia/Shanghai）。本轮最终命令：RUN_DB_TESTS=true，mvn -B -ntp clean package，Java17。为验证收费请求隔离，外部AI_MODE=live、AI_API_KEY使用临时随机合成值、AI_BASE_URL指向本机不可用端口；Surefire在系统属性和测试进程环境双重强制Mock并清空Key。JWT_SECRET为临时环境随机密钥。全部模型测试仅使用Mock或本机协议替身，未调用真实供应商。
 
 | 测试类 | 项数 | 失败 | 错误 | 跳过 |
 | --- | --- | --- | --- | --- |
@@ -9,6 +9,8 @@
 | com.tang.sky.AiChatTest | 1 | 0 | 0 | 0 |
 | com.tang.sky.AiFailureHttpTest | 1 | 0 | 0 | 0 |
 | com.tang.sky.AiFoundationTest | 2 | 0 | 0 | 0 |
+| com.tang.sky.AiProviderConfigurationTest | 4 | 0 | 0 | 0 |
+| com.tang.sky.AiProviderServiceTest | 3 | 0 | 0 | 0 |
 | com.tang.sky.AiSecurityTest | 3 | 0 | 0 | 0 |
 | com.tang.sky.AuthIntegrationTest | 5 | 0 | 0 | 0 |
 | com.tang.sky.BusinessTransactionIntegrationTest | 2 | 0 | 0 | 0 |
@@ -34,9 +36,9 @@
 | com.tang.sky.StatisticsIntegrationTest | 2 | 0 | 0 | 0 |
 | com.tang.sky.StreamingTest | 6 | 0 | 0 | 0 |
 
-**共29个测试类、62项，0失败、0错误、0跳过；4个Maven Reactor模块全部SUCCESS。**
+**共31个测试类、69项，0失败、0错误、0跳过；4个Maven Reactor模块全部SUCCESS。**
 
-统计直接提取最终Surefire XML，仅保存逐类统计，不提交含运行环境信息的原始XML。见[机器可读统计](verification/backend-tests.json)。其中包括单元/替身/真实基础设施/HTTP测试，不把全部62项统称为真实模型或数据库测试。
+统计直接提取最终Surefire XML，仅保存逐类统计，不提交含运行环境信息的原始XML。见[机器可读统计](verification/backend-tests.json)。其中包括单元/替身/真实基础设施/HTTP测试，不把全部69项统称为真实模型或数据库测试。
 
 ## 额外执行的验收
 
@@ -56,7 +58,7 @@
 | Nginx语法 | 使用已有镜像离线nginx -t通过；不是目标部署成功 |
 | Docker build | 本轮重试失败：auth.docker.io令牌请求连接超时，尚未进入应用编译 |
 | Docker up / health | 未执行 / 未验证 |
-| 真实模型 | 等待API Key进行真实验证 |
+| 真实模型 | 用户已在自己的PowerShell加载Key；待从该终端启动live并完成最小探针，尚未发起收费请求 |
 
 真实基础设施：MySQL8.0.44，仅catalog=sky_takeout_ai；Redis3.0.504。初次全量验收服务18080、Vite15173；后续预览修复已统一为8080与15173。完整菜单CRUD主要由Service+真实数据库集成验证，独立HTTP脚本未覆盖每个管理CRUD。订单创建/菜品创建有真实约束失败回滚证据，套餐没有额外故障注入。
 
@@ -68,3 +70,13 @@
 ## 预览登录修复复验
 
 新增4项数据库就绪检查后，最终clean package为62项、0失败/错误/跳过。实际Chrome使用demo_user重新打开15173，登录、JWT刷新、16张餐品卡、微辣加购28元、确认下单和详情通过；订单ID58保留。22次同源API全为200，无网络失败或JS异常。直接8080/health/ready及代理15173/api/health/ready均返回新库ready；启动脚本端口占用保护通过。详情见[PREVIEW_FIX](PREVIEW_FIX.md)。
+
+## DeepSeek切换准备复验
+
+新增7项Provider配置和探针测试后，全量打包69项通过、0失败/错误/跳过。原本地HTTP协议测试也增加/v1不重复、固定你好、64 token、无工具、成功缓存只调用一次的线级断言；本机替身绝不被标记为真实Provider已验证。普通测试通过Surefire系统属性与fork进程环境双重隔离，收费探针仅由独立脚本明确运行。
+
+Start-Preview的缺Key保护通过（没有创建进程）；Stop-Preview的WhatIf及实际停止已核验进程通过；Test-AiLive在Mock后端完成本机认证后立即拒绝继续，没有发送Probe。三个脚本在PowerShell5.1与7解析通过。
+
+真实Chrome重新打开15173，以demo_user登录并读取新后端状态：mode=mock、providerVerified=false、model=deepseek-flash。刷新状态不触发AI POST。另通过浏览器请求拦截模拟待验证、已验证、缺Key、状态503四种UI状态，文案和禁用逻辑通过；这些是页面展示测试，不是DeepSeek真实请求成功。AI POST总数0，JS异常0。[浏览器记录](verification/ai-status-browser.json)
+
+当前JAR与页面准备完成，用户终端持有的Key没有传给代理进程，故暂保留Mock预览；真实探针及Dish Tool→Memory→Structured Output→RAG→Order Tool→SSE尚未运行。操作见[真实AI验证](AI_LIVE_VERIFICATION.md)。没有访问旧数据库或Sentinel配置。

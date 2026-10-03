@@ -2,7 +2,7 @@
 
 Java 外卖业务与大模型应用学习项目：先用确定性的后端实现菜单、购物车和订单，再让AI通过受控工具读取真实业务数据。Maven多模块单体 + Vue用户端，适合按阶段阅读和练习。
 
-**验收状态（2026-10-03）：最新后端回归62项全部通过（含4项新增数据库就绪检查），真实MySQL/Redis参与；前端7项测试及真实HTTP/浏览器完整下单已验证。演示账号、12菜4套餐及3笔示例订单已导入。后续预览修复又用demo_user真实下单28元，见[预览修复记录](docs/PREVIEW_FIX.md)。Docker构建仍因Docker Hub鉴权网络超时阻塞；真实模型API未验证，默认Mock不产生模型调用费用。**
+**验收状态（2026-10-03）：最新后端回归69项全部通过（含数据库就绪与真实模式配置/探针检查），真实MySQL/Redis参与；前端7项测试及真实HTTP/浏览器完整下单已验证。演示账号、12菜4套餐及3笔示例订单已导入。后续预览修复又用demo_user真实下单28元，见[预览修复记录](docs/PREVIEW_FIX.md)。Docker构建仍因Docker Hub鉴权网络超时阻塞；真实模型API未验证，默认Mock不产生模型调用费用。**
 
 先读 [完整审计](docs/AUDIT.md) 与 [最新验收报告](docs/ACCEPTANCE_REPORT.md)，历史进展见 [夜间报告](docs/NIGHTLY_REPORT.md)，学习过程见 [LEARNING](docs/LEARNING.md)，面试准备见 [INTERVIEW](docs/INTERVIEW.md)。
 
@@ -85,7 +85,7 @@ SELECT DATABASE();
 
 ## 本机启动
 
-在项目根目录打开PowerShell。以下仅设置当前终端，不改系统JAVA_HOME/PATH，也不删除JDK11。
+在项目根目录打开PowerShell。以下用于普通回归与Mock预览，仅设置当前终端，不改系统JAVA_HOME/PATH，也不删除JDK11。真实DeepSeek模式按下方“真实模型启动与最小验证”操作，使用已加载Key的同一个PowerShell。
 
 ```powershell
 $env:JAVA_HOME = 'D:\java\jdk-17.0.20.1+1'
@@ -99,7 +99,7 @@ $env:AI_MODE = 'mock'
 $env:CACHE_ENABLED = 'true'
 $env:RUN_DB_TESTS = 'true'
 mvn -B -ntp clean package
-# 必须看到62项测试、0失败、0错误、0跳过和全部模块SUCCESS后启动
+# 必须看到69项测试、0失败、0错误、0跳过和全部模块SUCCESS后启动
 java -jar sky-server/target/sky-server-0.0.1-SNAPSHOT.jar
 ```
 
@@ -123,7 +123,27 @@ npm run dev
 ./scripts/Start-Preview.ps1 -JavaHome 'D:\java\jdk-17.0.20.1+1'
 ```
 
-脚本配对启动8080和15173，显式设置代理目标；先验证真实数据库连接、库名与SELECT 1，再验证15173/api/health/ready，成功后才报告ready。只用临时进程环境传递凭据，AI固定Mock；缺少JWT_SECRET时临时生成，不保存。占用端口时直接拒绝，不终止未知服务。当前服务已经运行，直接访问15173即可；再次启动前先确认并停止本项目旧实例，PID及非敏感日志在Git忽略的logs/preview/。不要仅凭/health=200判断数据库可用。
+脚本配对启动8080和15173，显式设置代理目标；先验证真实数据库连接、库名与SELECT 1，再验证15173/api/health/ready，成功后才报告ready。AI模式可由`-AiMode mock`或`-AiMode live`明确指定；省略时继承当前终端AI_MODE，未设置才默认Mock，不会把已选live静默改回Mock。凭据仅由子进程继承；缺少JWT_SECRET时临时生成，不保存。占用端口时直接拒绝，不终止未知服务。脚本报告ready后访问15173；再次启动前用`./scripts/Stop-Preview.ps1`核对并停止本项目记录的实例。PID及非敏感日志在Git忽略的logs/preview/。不要仅凭/health=200判断数据库可用。
+
+### 真实模型启动与最小验证
+
+必须设置`AI_MODE=live`；本项目不使用`AI_ENABLED`、`AI_PROVIDER`或额外Spring profile作为开关。供应商由`AI_BASE_URL`识别，使用已在当前PowerShell加载的`AI_API_KEY`，不要重新输出、复制到文档或写入源码。推荐`AI_BASE_URL=https://api.deepseek.com`、`AI_MODEL=deepseek-flash`；本项目也接受根地址后加`/v1`。官方已公告旧模型名`deepseek-chat`和`deepseek-reasoner`于2026-07-24停用，当前Flash调用名见[DeepSeek更新日志](https://api-docs.deepseek.com/updates/)与[官方调用说明](https://api-docs.deepseek.com/)。
+
+在已加载Key、DB_PASSWORD且已打包本轮最新JAR的**同一个PowerShell**执行：
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$env:AI_MODE = 'live'
+$env:AI_BASE_URL = 'https://api.deepseek.com'
+$env:AI_MODEL = 'deepseek-flash'
+./scripts/Stop-Preview.ps1
+./scripts/Start-Preview.ps1 -JavaHome 'D:\java\jdk-17.0.20.1+1' -AiMode live
+./scripts/Test-AiLive.ps1 -Stage Probe
+```
+
+启动与网页“刷新状态”不会调用模型。只有最后一行明确执行最小Probe：固定“你好”、最多64输出token，不带Tools/Memory/RAG、不重试；同一后端进程验证成功后缓存结果，不重复收费问候。脚本需要登录开发账号，未设置DEMO_PASSWORD时自动隐藏输入。DB_PASSWORD若尚未加载，按[真实AI验证指南](docs/AI_LIVE_VERIFICATION.md)隐藏输入后再启动。
+
+当前完成的是Provider、配置和最小验证流程准备，**尚未请求真实DeepSeek**：Key仍只在用户自己的PowerShell，不能据此写“真实AI验收通过”。网页“真实模型 · 已验证”仅代表当前进程的基础Probe通过；Dish Tool、Memory、Structured Output、RAG、Order Tool及SSE后续依次单独验收。完整说明与成功判据见[AI_LIVE_VERIFICATION](docs/AI_LIVE_VERIFICATION.md)。
 
 ### 创建自己的管理员与菜单
 
@@ -160,12 +180,12 @@ PUT /admin/dishes/返回ID/status?status=1
 | CACHE_ENABLED | false；只缓存公开分类与可售菜品热点列表 |
 | JWT_SECRET | 必填，至少32随机字节的Base64；重启改变值会使旧Token失效 |
 | AI_MODE | mock；live才启用外部兼容模型 |
-| AI_API_KEY / AI_BASE_URL / AI_MODEL | 空 / https://api.deepseek.com / deepseek-chat |
+| AI_API_KEY / AI_BASE_URL / AI_MODEL | 空 / https://api.deepseek.com / deepseek-flash；live启动需要当前终端明确配置 |
 | RUN_DB_TESTS | 未设则跳过需要MySQL/Redis的测试；完整验收必须true |
 | ADMIN_INIT_USERNAME / ADMIN_INIT_PASSWORD | 仅显式初始化子进程使用，脚本结束清理 |
 | MYSQL_ROOT_PASSWORD / WEB_PORT | 仅Docker；独立容器root密码 / 18088 |
 
-.env.example只有变量说明和占位符；Spring Boot不自动加载.env。真实密码或Key不得写application.yml、源码、测试、文档、.env.example或Git。本次没有调用收费模型；启用live前由你确认供应商及费用。
+.env.example只有变量说明和占位符；Spring Boot不自动加载.env。真实密码或Key不得写application.yml、源码、测试、文档、.env.example或Git。普通Maven回归强制Mock；真实Provider验证单独由`Test-AiLive.ps1 -Stage Probe`显式触发，目前尚未执行真实DeepSeek调用。
 
 ## API概览
 
@@ -180,7 +200,7 @@ PUT /admin/dishes/返回ID/status?status=1
 | 套餐 | GET /user/setmeals、/user/setmeals/{id}；管理员/admin/setmeals同样提供CRUD和上下架 |
 | 购物车 | GET/POST/DELETE /user/cart；PATCH /user/cart/{id}/reduce；DELETE /user/cart/{id} |
 | 订单 | GET/POST /user/orders；GET /user/orders/{id}；POST /{id}/cancel、/{id}/again；管理员PUT /admin/orders/{id}/status?status=状态 |
-| AI | GET /user/ai/status；POST /user/ai/chat、/chat/stream、/meal-plan、/rules |
+| AI | GET /user/ai/status；POST /user/ai/probe（显式最小验证）、/chat、/chat/stream、/meal-plan、/rules |
 | 管理员AI | POST /admin/ai/chat，输入message、days（1—90） |
 
 菜品支持categoryId、keyword、page、size；套餐支持categoryId、page、size。分页1开始，size最多100。聊天请求`{"message":"我想吃辣的","conversationId":"自选会话标识"}`；conversationId可省略。预算套餐`{"message":"两个人吃午餐","budget":80}`。购物车`{"itemType":"DISH","itemId":1,"quantity":1,"flavor":""}`。下单`{"requestKey":"自选唯一请求键至少8位","address":"自填地址","contact":"自填联系信息"}`，相同用户相同requestKey幂等返回已有订单。
@@ -238,7 +258,7 @@ docker compose up -d --wait
 
 ## 测试与当前证据
 
-- 后端最新全量验收：RUN_DB_TESTS=true，mvn clean package，62项、0失败、0错误、0跳过，全部模块SUCCESS；真实MySQL与Redis参与。
+- 后端最新全量验收：RUN_DB_TESTS=true，mvn clean package，69项、0失败、0错误、0跳过，全部模块SUCCESS；真实MySQL与Redis参与。
 - Maven Surefire强制AI_MODE=mock；Provider适配器另连接本机HTTP替身验证同步、SSE和错误不重试，未访问真实供应商。等待API Key进行真实验证。
 - 前端npm test的7项测试及npm run build成功；Element Plus全量引入带约1.05MB JS体积警告，尚未按需拆包。
 - Chrome浏览器14组流程、24项视口检查通过，无pageerror；真实选微辣菜品28元+套餐36元，下单64元并核对详情，取消/再来一单、Mock SSE及四类RAG来源均通过。三类网络/AI503/401错误显示另用浏览器拦截模拟，详见验收报告。

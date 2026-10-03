@@ -17,7 +17,7 @@ import com.tang.sky.ai.security.AiRequestAudit;
 /** Structured Output负责映射Java对象；真实性、数量和预算仍由后端验证，不信任模型金额。 */
 @Service
 public class MealPlanService {
-    @Value("${AI_MODEL:deepseek-chat}") private String modelName="deepseek-chat";
+    @Value("${AI_MODEL:deepseek-flash}") private String modelName="deepseek-flash";
     private final ChatClient client;private final DishTools tools;private final DishService dishes;private final PromptCatalog prompts;private final ObjectMapper json;private final String mode;
     public MealPlanService(ChatModel model,DishTools tools,DishService dishes,PromptCatalog prompts,ObjectMapper json,@Value("${AI_MODE:mock}")String mode){this.client=ChatClient.create(model);this.tools=tools;this.dishes=dishes;this.prompts=prompts;this.json=json;this.mode=mode;}
     public AiMealPlan create(Request request){

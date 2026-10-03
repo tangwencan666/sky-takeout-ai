@@ -22,7 +22,7 @@ public class AdminAiService {
     private final StatisticsTools tools;
     private final String mode;
     private final String prompt;
-    @Value("${AI_MODEL:deepseek-chat}") private String modelName="deepseek-chat";
+    @Value("${AI_MODEL:deepseek-flash}") private String modelName="deepseek-flash";
     public AdminAiService(ChatModel model, StatisticsService statistics, StatisticsTools tools,
             @Value("${AI_MODE:mock}") String mode) throws IOException {
         this.client = ChatClient.create(model); this.statistics = statistics; this.tools = tools; this.mode = mode;

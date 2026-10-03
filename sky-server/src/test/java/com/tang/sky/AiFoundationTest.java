@@ -13,7 +13,7 @@ class AiFoundationTest {
         assertTrue(prompts.ordering().contains("禁止编造"));assertTrue(prompts.ordering().contains("查询"));
     }
     @Test void missingKeyDoesNotBreakConstruction() throws Exception {
-        var model=new AiConfig().chatModel("live","","","");
+        var model=new AiConfig().chatModel("live","","https://api.deepseek.com","deepseek-flash");
         assertEquals(ErrorCode.AI_UNAVAILABLE,assertThrows(BusinessException.class,()->new AiAssistantService(model,new PromptCatalog(),"live").reply("午餐")).error());
     }
 }
