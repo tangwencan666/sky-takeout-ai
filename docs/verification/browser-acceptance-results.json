@@ -1,0 +1,540 @@
+{
+  "checks": [
+    "真实浏览器注册、登录和加载12菜品4套餐",
+    "四个视口菜单无横向溢出",
+    "真实分类筛选",
+    "微辣口味入库、重复加购数量2、金额56、减少为1",
+    "真实套餐明细与加入购物车",
+    "真实确认下单、订单详情与服务端金额/口味快照",
+    "真实取消订单、再次下单回填当前购物车",
+    "真实HTTP Mock SSE分块输出并正常结束（未调用真实模型）",
+    "真实菜单预算搭配卡，服务端金额不超过80",
+    "四个真实RAG问题返回相应来源文档",
+    "模拟AI503、网络失败和401均显示友好状态，无白屏",
+    "真实错误密码登录返回401并保持登录界面",
+    "已有开发演示账号demo_user真实登录成功",
+    "真实退出登录清空订单与私有界面"
+  ],
+  "screenshots": [
+    "01-login.png",
+    "02-menu-1920x1080.png",
+    "02-menu-1440x900.png",
+    "02-menu-1366x768.png",
+    "02-menu-390x844.png",
+    "03-cart-checkout.png",
+    "03-cart-390x844.png",
+    "04-order-details.png",
+    "04-order-details-390x844.png",
+    "05-ai-meal-plan.png",
+    "05-ai-plan-390x844.png",
+    "06-rag-rules.png",
+    "06-rag-390x844.png",
+    "07-demo-orders.png",
+    "07-orders-390x844.png"
+  ],
+  "viewportChecks": [
+    {
+      "width": 1920,
+      "height": 1080,
+      "viewport": 1920,
+      "content": 1920,
+      "result": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "viewport": 1440,
+      "content": 1440,
+      "result": "PASS"
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "viewport": 1366,
+      "content": 1366,
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "content": 390,
+      "result": "PASS"
+    },
+    {
+      "page": "03-cart",
+      "width": 1920,
+      "height": 1080,
+      "viewport": 1920,
+      "content": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "03-cart",
+      "width": 1440,
+      "height": 900,
+      "viewport": 1440,
+      "content": 1440,
+      "result": "PASS"
+    },
+    {
+      "page": "03-cart",
+      "width": 1366,
+      "height": 768,
+      "viewport": 1366,
+      "content": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "03-cart",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "content": 390,
+      "result": "PASS"
+    },
+    {
+      "page": "04-order-details",
+      "width": 1920,
+      "height": 1080,
+      "viewport": 1920,
+      "content": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "04-order-details",
+      "width": 1440,
+      "height": 900,
+      "viewport": 1440,
+      "content": 1440,
+      "result": "PASS"
+    },
+    {
+      "page": "04-order-details",
+      "width": 1366,
+      "height": 768,
+      "viewport": 1366,
+      "content": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "04-order-details",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "content": 390,
+      "result": "PASS"
+    },
+    {
+      "page": "05-ai-plan",
+      "width": 1920,
+      "height": 1080,
+      "viewport": 1920,
+      "content": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "05-ai-plan",
+      "width": 1440,
+      "height": 900,
+      "viewport": 1440,
+      "content": 1440,
+      "result": "PASS"
+    },
+    {
+      "page": "05-ai-plan",
+      "width": 1366,
+      "height": 768,
+      "viewport": 1366,
+      "content": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "05-ai-plan",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "content": 390,
+      "result": "PASS"
+    },
+    {
+      "page": "06-rag",
+      "width": 1920,
+      "height": 1080,
+      "viewport": 1920,
+      "content": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "06-rag",
+      "width": 1440,
+      "height": 900,
+      "viewport": 1440,
+      "content": 1440,
+      "result": "PASS"
+    },
+    {
+      "page": "06-rag",
+      "width": 1366,
+      "height": 768,
+      "viewport": 1366,
+      "content": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "06-rag",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "content": 390,
+      "result": "PASS"
+    },
+    {
+      "page": "07-orders",
+      "width": 1920,
+      "height": 1080,
+      "viewport": 1920,
+      "content": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "07-orders",
+      "width": 1440,
+      "height": 900,
+      "viewport": 1440,
+      "content": 1440,
+      "result": "PASS"
+    },
+    {
+      "page": "07-orders",
+      "width": 1366,
+      "height": 768,
+      "viewport": 1366,
+      "content": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "07-orders",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "content": 390,
+      "result": "PASS"
+    }
+  ],
+  "runtimeErrors": [],
+  "apiResponses": [
+    {
+      "method": "POST",
+      "path": "/api/user/auth/register",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/categories",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/categories",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/categories",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes/118",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes/118",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/user/cart/93/reduce",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/categories",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals/18",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/orders",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/orders",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/orders/52",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/orders/52/cancel",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/orders",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/orders/52/again",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/ai/status",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ai/chat/stream",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ai/meal-plan",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ai/rules",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ai/rules",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ai/rules",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ai/rules",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ai/rules",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/categories",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/categories",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/categories",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/auth/login",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/categories",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/cart",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/dishes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/setmeals",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/orders",
+      "status": 200
+    }
+  ],
+  "simulatedFaults": [
+    "浏览器拦截模拟AI503：友好错误可见",
+    "浏览器拦截模拟菜单网络失败：错误可见且旧菜单不残留",
+    "浏览器拦截模拟401：自动退出且私有页面清空"
+  ],
+  "fixtureUser": "ui_0ffa7e627e21a7f2",
+  "createdOrderId": 52,
+  "sseEvents": {
+    "delta": 39,
+    "done": 1
+  },
+  "result": "PASS"
+}

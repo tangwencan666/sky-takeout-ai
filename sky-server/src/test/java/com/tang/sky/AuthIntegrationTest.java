@@ -78,5 +78,13 @@ class AuthIntegrationTest {
                 .content("{\"username\":\"forged_admin\",\"password\":\"FakeTest!29\",\"role\":\"ADMIN\"}"))
                 .andExpect(status().isBadRequest());
         assertNull(accounts.findUser("forged_admin"));
+        mvc.perform(post("/user/cart").header("Authorization","Bearer "+token).contentType("application/json")
+                .content("{\"itemType\":\"DISH\",\"itemId\":1,\"quantity\":1,\"flavor\":\"\",\"userId\":999}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/user/orders").header("Authorization","Bearer "+token).contentType("application/json")
+                .content("{\"requestKey\":\"forged_amount\",\"address\":\"地址\",\"contact\":\"联系人\",\"totalPrice\":0.01}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(put("/admin/categories/1/status?status=0").header("Authorization","Bearer "+token))
+                .andExpect(status().isForbidden());
     }
 }

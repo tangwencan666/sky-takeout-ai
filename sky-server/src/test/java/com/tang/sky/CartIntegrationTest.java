@@ -24,6 +24,8 @@ class CartIntegrationTest {
         UserContext.set(new UserContext.Identity(a.id(),"USER"));var add=new AddInput("DISH",dish,"微辣",1);cart.add(add);cart.add(add);
         var view=cart.view();assertEquals(1,view.items().size());assertEquals(2,view.items().get(0).quantity());assertEquals(0,new BigDecimal("37.00").compareTo(view.totalPrice()));long item=view.items().get(0).id();
         UserContext.set(new UserContext.Identity(b.id(),"USER"));assertTrue(cart.view().items().isEmpty());assertThrows(BusinessException.class,()->cart.delete(item));
+        assertEquals(ErrorCode.NOT_FOUND,assertThrows(BusinessException.class,()->cart.reduce(item)).error());
+        cart.clear();
         UserContext.set(new UserContext.Identity(a.id(),"USER"));cart.reduce(item);assertEquals(1,cart.view().items().get(0).quantity());
         dishes.status(dish,0);assertFalse(cart.view().checkoutAllowed());assertNull(cart.view().items().get(0).unitPrice());
         cart.clear();assertTrue(cart.view().items().isEmpty());

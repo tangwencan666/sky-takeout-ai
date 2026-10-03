@@ -14,9 +14,15 @@ import org.springframework.stereotype.Component;
 public class JwtService {
     private final SecretKey key;
     public JwtService(@Value("${JWT_SECRET:}") String secret) {
-        // 本地未配置时生成进程内随机密钥，重启后旧Token失效；部署时必须由环境提供稳定密钥。
-        key = secret.isBlank() ? Jwts.SIG.HS256.key().build()
-                : Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+        // 启动即检查环境配置，避免开发回退掩盖部署遗漏；错误消息不包含密钥本身。
+        if (secret==null || secret.isBlank()) throw new IllegalStateException("JWT_SECRET 必须由环境变量提供");
+        try {
+            byte[] decoded=Base64.getDecoder().decode(secret);
+            if (decoded.length<32) throw new IllegalArgumentException();
+            key=Keys.hmacShaKeyFor(decoded);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("JWT_SECRET 必须是至少32字节随机密钥的Base64编码");
+        }
     }
     public String issue(long id, String role) { return issue(id, role, Instant.now().plusSeconds(7200)); }
     public String issue(long id, String role, Instant expiresAt) {

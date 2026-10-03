@@ -1,62 +1,129 @@
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { api, TOKEN_KEY } from './api'
-const messages = ref([]), message = ref(''), conversation = ref(null), mode = ref('mock'), running = ref(false), error = ref(''), plan = ref(null), budget = ref(80)
-let abort
-onMounted(async () => { try { mode.value = (await api.get('/user/ai/status')).mode } catch (e) { error.value = e.message } })
-onUnmounted(() => abort?.abort())
-// fetch支持POST和Authorization；处理跨数据包的事件边界及UTF-8，不假设一次read是一条消息。
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { api, sessionToken, currentSession, errorMessage } from './api'
+import { money, text, list } from './format'
+import FoodImage from './FoodImage.vue'
+const emit = defineEmits(['select-dish'])
+const messages = ref([]), message = ref(''), conversation = ref(null), mode = ref('unknown')
+const running = ref(false), error = ref(''), plan = ref(null), budget = ref(80), purpose = ref('ordering')
+const messagesElement = ref(null), rules = ref(null)
+const modeLabel = computed(() => mode.value === 'live' ? '模型模式' : mode.value === 'mock' ? 'Mock 演示' : '正在连接')
+const ruleTitles = { 'delivery-policy.md': '配送规则', 'refund-policy.md': '退款规则', 'coupon-policy.md': '优惠券规则', 'membership-policy.md': '会员规则', 'food-safety.md': '食品安全' }
+let abort, alive = true, timedOut = false
+onMounted(async () => {
+  try { const result = await api.get('/user/ai/status'); if (alive) mode.value = result.mode }
+  catch (e) { if (alive) { mode.value = 'unavailable'; error.value = errorMessage(e) } }
+})
+onUnmounted(() => { alive = false; abort?.abort() })
+
+async function scrollMessages() {
+  await nextTick()
+  messagesElement.value?.scrollTo({ top: messagesElement.value.scrollHeight, behavior: 'instant' })
+}
+function stop() { abort?.abort() }
+function reset() { messages.value = []; conversation.value = null; plan.value = null; rules.value = null; error.value = '' }
+async function execute(action) {
+  if (running.value) return
+  running.value = true; error.value = ''; timedOut = false; abort = new AbortController()
+  const revision = currentSession()
+  const timer = setTimeout(() => { timedOut = true; abort?.abort() }, 55000)
+  try { await action(abort.signal, revision) }
+  catch (e) {
+    if (alive && revision === currentSession()) error.value = timedOut ? 'AI回复超时，请稍后重试；菜单和订单功能仍可使用' : e.name === 'AbortError' || e.code === 'ERR_CANCELED' ? '已停止本次请求' : errorMessage(e, 'AI服务暂时不可用，请稍后重试')
+  } finally { clearTimeout(timer); if (alive) running.value = false; abort = null }
+}
+
+// POST流使用fetch，按SSE事件边界解析UTF-8；服务端done才代表本轮完成。
 async function chat() {
-  const text = message.value.trim(); if (!text || running.value) return
-  running.value = true; error.value = ''; message.value = ''; abort = new AbortController()
-  messages.value.push({ role: 'user', text }); const answer = reactive({ role: 'assistant', text: '' }); messages.value.push(answer)
-  try {
-    const response = await fetch('/api/user/ai/chat/stream', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem(TOKEN_KEY)}` }, body: JSON.stringify({ message: text, conversationId: conversation.value }), signal: abort.signal })
-    if (!response.ok) { if (response.status === 401) window.dispatchEvent(new Event('sky-unauthorized')); throw new Error('AI连接失败，请检查登录状态后重试') }
-    const reader = response.body.getReader(), decoder = new TextDecoder(); let buffer = '', completed = false
+  const input = message.value.trim()
+  if (!input) return
+  await execute(async (signal, revision) => {
+    message.value = ''; messages.value.push({ role: 'user', text: input })
+    const answer = reactive({ role: 'assistant', text: '', state: '正在生成' })
+    messages.value.push(answer); scrollMessages()
+    let reader, completed = false
     try {
+      const response = await fetch('/api/user/ai/chat/stream', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionToken()}` },
+        body: JSON.stringify({ message: input, conversationId: conversation.value }), signal
+      })
+      if (revision !== currentSession()) throw new DOMException('会话已改变', 'AbortError')
+      if (!response.ok) {
+        if (response.status === 401) window.dispatchEvent(new Event('sky-unauthorized'))
+        const body = await response.json().catch(() => ({}))
+        throw new Error(text(body.message, 'AI连接失败，请稍后重试'))
+      }
+      if (!response.body) throw new Error('浏览器无法读取流式响应，请更新浏览器后重试')
+      reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
       while (true) {
-        const { value, done } = await reader.read(); if (done) break
+        const { value, done } = await reader.read()
+        if (revision !== currentSession()) throw new DOMException('会话已改变', 'AbortError')
+        if (done) break
         buffer = (buffer + decoder.decode(value, { stream: true })).replace(/\r\n/g, '\n')
+        if (buffer.length > 100000) throw new Error('回复格式异常，请重试')
         let boundary
         while ((boundary = buffer.indexOf('\n\n')) >= 0) {
           const block = buffer.slice(0, boundary); buffer = buffer.slice(boundary + 2)
-          const lines = block.split('\n'); const event = lines.find(line => line.startsWith('event:'))?.slice(6).trim()
+          const lines = block.split('\n')
+          const event = lines.find(line => line.startsWith('event:'))?.slice(6).trim()
           const data = lines.filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n')
           if (!data) continue
-          const payload = JSON.parse(data)
-          if (event === 'delta') answer.text += payload.text
-          if (event === 'done') { conversation.value = payload.conversationId; mode.value = payload.mode; completed = true }
-          if (event === 'error') throw new Error(payload.message)
+          let payload
+          try { payload = JSON.parse(data) } catch { throw new Error('AI回复格式异常，请稍后重试') }
+          if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('AI回复格式异常，请稍后重试')
+          if (event === 'delta') { answer.text += text(payload.text); if (answer.text.length > 20000) throw new Error('回复过长，请缩小问题范围') }
+          if (event === 'done') { conversation.value = text(payload.conversationId) || null; mode.value = payload.mode; completed = true }
+          if (event === 'error') throw new Error(text(payload.message, 'AI暂时不可用，请稍后重试'))
         }
+        scrollMessages()
       }
-      if (!completed) throw new Error('回复未完成，请重试')
-    } finally { await reader.cancel().catch(() => {}); reader.releaseLock() }
-  } catch (e) { error.value = e.name === 'AbortError' ? '已停止生成' : e.message }
-  finally { running.value = false; abort = null }
+      if (!completed) throw new Error('回复中断，请重新发送本轮问题')
+      answer.state = '已完成'
+    } finally {
+      if (!completed) answer.state = '回复未完成'
+      if (reader) { await reader.cancel().catch(() => {}); reader.releaseLock() }
+    }
+  })
 }
 async function makePlan() {
-  if (running.value || !message.value.trim()) return
-  running.value = true; error.value = ''; plan.value = null
-  try { plan.value = await api.post('/user/ai/meal-plan', { message: message.value, budget: budget.value }) } catch (e) { error.value = e.message } finally { running.value = false }
+  if (!message.value.trim()) return
+  if (!Number.isFinite(budget.value) || budget.value < 1) { error.value = '请输入有效预算'; return }
+  await execute(async signal => {
+    plan.value = null
+    const result = await api.post('/user/ai/meal-plan', { message: message.value.trim(), budget: budget.value }, { signal, timeout: 55000 })
+    if (alive) plan.value = { ...result, dishes: list(result?.dishes) }
+  })
 }
-async function addDish(id) {
-  try { await api.post('/user/cart', { itemType: 'DISH', itemId: id, quantity: 1, flavor: '' }); ElMessage.success('已加入购物车') } catch (e) { error.value = e.message }
+async function askRules() {
+  if (!message.value.trim()) return
+  await execute(async signal => {
+    rules.value = null
+    const result = await api.post('/user/ai/rules', { message: message.value.trim() }, { signal, timeout: 55000 })
+    if (alive) rules.value = { ...result, sources: list(result?.sources) }
+  })
 }
+function suggestion(value) { message.value = value }
 </script>
+
 <template>
   <section class="chat-panel">
-    <h2>AI点餐助手 <el-tag>{{ mode === 'live' ? '模型模式' : 'Mock演示' }}</el-tag></h2>
-    <p>告诉我人数、预算和口味。推荐卡片经过后端核验；聊天文字仍需结合实际菜单确认。</p>
-    <el-alert v-if="mode !== 'live'" title="当前未调用真实模型；聊天为协议演示，套餐按真实菜单与预算生成演示结果。" type="info" :closable="false" />
-    <el-alert v-if="error" :title="error" type="warning" :closable="false" />
-    <div class="messages" aria-live="polite"><article v-for="(item, index) in messages" :key="index" :class="['bubble', item.role]"><b>{{ item.role === 'user' ? '我' : '智膳助手' }}</b><p>{{ item.text || '正在生成…' }}</p></article></div>
-    <el-input v-model="message" type="textarea" :rows="3" maxlength="2000" show-word-limit placeholder="例如：两个人，预算80，想吃辣一点" :disabled="running" />
-    <div class="chat-actions"><el-button type="primary" :disabled="running || !message.trim()" @click="chat">发送</el-button><el-button v-if="running" @click="abort?.abort()">停止生成</el-button><el-input-number v-model="budget" :min="1" :max="10000" :precision="2" aria-label="套餐预算" /><el-button :disabled="running || !message.trim()" @click="makePlan">生成预算套餐</el-button></div>
-    <div v-if="plan"><h3>推荐方案 · ¥{{ plan.totalPrice }} / 预算 ¥{{ plan.budget }}</h3><p>{{ plan.reason }}</p><div class="grid"><article v-for="dish in plan.dishes" :key="dish.id" class="card"><img v-if="dish.image" :src="dish.image" :alt="dish.name"><h3>{{ dish.name }}</h3><p>{{ dish.description }}</p><b>¥{{ dish.price }}</b><el-button @click="addDish(dish.id)">加入购物车</el-button></article></div></div>
+    <div class="section-head"><div><span class="eyebrow">YOUR SMART FOOD COMPANION</span><h1>把选择，交给智膳助手</h1><p>说说人数、预算和口味，一起找到适合这一餐的搭配。</p></div><el-tag :type="mode === 'live' ? 'success' : 'info'" effect="plain">{{ mode === 'unavailable' ? '服务未连接' : modeLabel }}</el-tag></div>
+    <div class="assistant-layout"><aside class="surface assistant-sidebar"><div class="assistant-symbol" aria-hidden="true">AI</div><h2>今天，想吃点什么？</h2><p>餐品以当前菜单为准，推荐方案的价格由后端重新核算。</p><div class="assistant-mode"><button :class="{active:purpose === 'ordering'}" :disabled="running" @click="purpose = 'ordering'; error = ''">点餐与搭配 <span>聊口味，定预算</span></button><button :class="{active:purpose === 'rules'}" :disabled="running" @click="purpose = 'rules'; error = ''">商家规则问答 <span>配送、退款与食品安全</span></button></div><div class="assistant-note"><strong>{{ mode === 'live' ? '请以实际菜单为准' : '当前为 Mock 演示' }}</strong><p>{{ mode === 'live' ? '聊天建议不等于交易承诺。核对餐品后，通过按钮加入购物车。' : '不调用真实模型。聊天演示协议，搭配使用真实菜单与预算；口味理解尚未经过真实模型验证。' }}</p></div></aside>
+      <div class="surface assistant-main">
+        <el-alert v-if="error" :title="error" type="warning" :closable="false" show-icon class="notice" />
+        <template v-if="purpose === 'ordering'">
+          <div class="conversation-head"><strong>点餐对话</strong><el-button text :disabled="running" @click="reset">新对话</el-button></div>
+          <div ref="messagesElement" class="messages" aria-live="polite" aria-label="AI对话记录">
+            <div v-if="!messages.length" class="chat-welcome"><span class="eyebrow">LET'S FIND YOUR FAVORITE</span><h2>一餐刚刚好，<br>从一句话开始。</h2><p>可以从下面的问题试起，也可以直接说出你的想法。</p><div class="suggestion-list"><button :disabled="running" @click="suggestion('我30块钱以内，想吃辣的。')">30元以内，想吃辣的</button><button :disabled="running" @click="suggestion('两个人，预算80，想吃辣一点。')">两个人，预算80元</button><button :disabled="running" @click="suggestion('看看我的购物车，帮我确认一下价格。')">看看购物车里的搭配</button></div></div>
+            <article v-for="(item, index) in messages" :key="index" :class="['bubble', item.role]"><b>{{ item.role === 'user' ? '我' : '智膳助手' }}</b><p>{{ item.text || (running ? '正在生成…' : '本轮未返回内容') }}</p><small v-if="item.role === 'assistant' && item.state !== '已完成'">{{ item.state }}</small></article>
+          </div>
+        </template>
+        <template v-else><div class="rules-intro"><span class="eyebrow">KNOW BEFORE YOU ORDER</span><h2>关于这一餐的疑问</h2><p>从项目规则文档中检索答案，并展示来源。这里的规则是学习示例，具体处理以商家确认为准。</p><div class="suggestion-list"><button :disabled="running" v-for="question in ['配送超时怎么办？','优惠券为什么不能用？','退款多久？','食品有问题怎么办？']" :key="question" @click="suggestion(question)">{{ question }}</button></div></div><div v-if="rules" class="rule-answer"><h3>规则检索结果</h3><p>{{ text(rules.answer, '暂未找到相关依据') }}</p><div class="source-list"><span>依据：</span><el-tag v-for="source in rules.sources" :key="String(source)" type="info">{{ ruleTitles[source] || text(source, '规则文档') }}</el-tag><span v-if="!rules.sources.length">未找到足够依据</span></div></div></template>
+        <div class="chat-composer"><el-input v-model="message" type="textarea" :rows="3" maxlength="2000" show-word-limit :placeholder="purpose === 'rules' ? '输入配送、退款或食品安全问题…' : '例如：两个人，预算80，想吃辣一点'" :disabled="running" aria-label="输入给AI助手的问题" /><div class="chat-actions"><div v-if="purpose === 'ordering'" class="budget-input"><label for="meal-budget">预算 ¥</label><el-input-number id="meal-budget" v-model="budget" :min="1" :max="10000" :precision="2" :disabled="running" aria-label="搭配预算" /></div><div class="chat-submit"><el-button v-if="running" @click="stop">停止生成</el-button><template v-else><el-button v-if="purpose === 'ordering'" :disabled="!message.trim()" @click="makePlan">生成预算搭配</el-button><el-button type="primary" :disabled="!message.trim()" @click="purpose === 'ordering' ? chat() : askRules()">{{ purpose === 'ordering' ? '发送' : '查询规则' }}</el-button></template></div></div></div>
+      </div>
+    </div>
+    <section v-if="plan && purpose === 'ordering'" class="plan-section"><div class="section-head"><div><span class="eyebrow">A MEAL THAT FITS</span><h2>为这一餐推荐的搭配</h2><p>{{ text(plan.reason) }}</p></div><div class="plan-total"><strong>¥{{ money(plan.totalPrice) }}</strong><span>预算 ¥{{ money(plan.budget) }} · 每道一份</span></div></div><div class="product-grid"><article v-for="dish in plan.dishes" :key="dish.id" class="product-card"><FoodImage :src="dish.image" :name="dish.name" /><div class="product-body"><h3>{{ dish.name }}</h3><p>{{ text(dish.description) }}</p><div class="product-bottom"><span class="price"><small>¥</small>{{ money(dish.price) }}</span><el-button type="primary" @click="emit('select-dish', dish.id)">选规格</el-button></div></div></article></div></section>
   </section>
 </template>
-<style scoped>
-.messages{display:flex;flex-direction:column;gap:16px;max-height:450px;overflow:auto;padding:20px 0}.bubble{max-width:85%;padding:16px 20px;border-radius:14px;background:#fff;border:1px solid #e1e7dd}.bubble.user{align-self:flex-end;background:#e6f1e9}.bubble.assistant{align-self:flex-start}.bubble p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}.chat-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.el-alert{margin:12px 0}
-</style>

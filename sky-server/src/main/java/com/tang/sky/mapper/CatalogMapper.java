@@ -9,6 +9,11 @@ import org.apache.ibatis.annotations.*;
 public interface CatalogMapper {
     @Select("SELECT * FROM category ORDER BY sort,id") List<Category> categories();
     @Select("SELECT * FROM category WHERE id=#{id}") Category category(long id);
+    @Select("<script>SELECT * FROM category WHERE 1=1 <if test='type != null'>AND type=#{type}</if><if test='keyword != null'> AND LOCATE(#{keyword},name)>0</if> ORDER BY sort,id LIMIT #{limit} OFFSET #{offset}</script>")
+    List<Category> categoryPage(@Param("type") Integer type,@Param("keyword") String keyword,@Param("offset") int offset,@Param("limit") int limit);
+    @Select("<script>SELECT COUNT(*) FROM category WHERE 1=1 <if test='type != null'>AND type=#{type}</if><if test='keyword != null'> AND LOCATE(#{keyword},name)>0</if></script>")
+    long categoryCount(@Param("type") Integer type,@Param("keyword") String keyword);
+    @Update("UPDATE category SET status=#{status} WHERE id=#{id}") int categoryStatus(@Param("id") long id,@Param("status") int status);
     @Insert("INSERT INTO category(name,type,sort) VALUES(#{name},#{type},#{sort})") int insertCategory(CategoryInput input);
     @Update("UPDATE category SET name=#{input.name},type=#{input.type},sort=#{input.sort} WHERE id=#{id}") int updateCategory(@Param("id") long id,@Param("input") CategoryInput input);
     @Delete("DELETE FROM category WHERE id=#{id}") int deleteCategory(long id);

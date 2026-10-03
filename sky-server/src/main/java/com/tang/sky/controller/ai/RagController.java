@@ -8,5 +8,5 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class RagController {
     private final RagService service;public RagController(RagService service){this.service=service;}
-    @PostMapping("/user/ai/rules")public Result<RagService.Answer> answer(@Valid @RequestBody Request input){return Result.success(service.answer(input.message()));}
+    @PostMapping("/user/ai/rules")public Result<RagService.Answer> answer(@Valid @RequestBody Request input){return Result.success(service.answer(input.message(),input.conversationId()));}
 }

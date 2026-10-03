@@ -8,6 +8,6 @@ import java.util.List;
 public class MockChatModel implements ChatModel {
     private static final String TEXT="【Mock演示】模型未启用。请使用菜单浏览真实菜品；此回复不代表真实模型推荐。";
     public ChatResponse call(Prompt prompt){return response(TEXT);}
-    public Flux<ChatResponse> stream(Prompt prompt){return Flux.fromIterable(TEXT.codePoints().mapToObj(c->new String(Character.toChars(c))).toList()).map(MockChatModel::response);}
+    public Flux<ChatResponse> stream(Prompt prompt){return Flux.fromIterable(TEXT.codePoints().mapToObj(c->new String(Character.toChars(c))).toList()).delayElements(java.time.Duration.ofMillis(20)).map(MockChatModel::response);}
     private static ChatResponse response(String text){return new ChatResponse(List.of(new Generation(new AssistantMessage(text))));}
 }

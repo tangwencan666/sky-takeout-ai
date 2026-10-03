@@ -14,12 +14,13 @@ import java.util.concurrent.atomic.*;
 @RestController
 public class AiStreamController {
     private final AiAssistantService service;private final ThreadPoolTaskExecutor executor;
+    @org.springframework.beans.factory.annotation.Value("${AI_SSE_TIMEOUT_MS:45000}")private long timeoutMs=45000;
     public AiStreamController(AiAssistantService service,@Qualifier("aiExecutor")ThreadPoolTaskExecutor executor){this.service=service;this.executor=executor;}
     @PostMapping(value="/user/ai/chat/stream",produces="text/event-stream")
     public SseEmitter stream(@Valid @RequestBody Request input){
-        var identity=UserContext.require();var emitter=new SseEmitter(45000L);var cancelled=new AtomicBoolean();var task=new AtomicReference<Future<?>>();
+        var identity=UserContext.require();var emitter=new SseEmitter(timeoutMs);var cancelled=new AtomicBoolean();var task=new AtomicReference<Future<?>>();
         Runnable cancel=()->{cancelled.set(true);var future=task.get();if(future!=null)future.cancel(true);};
-        emitter.onCompletion(cancel);emitter.onTimeout(()->{cancel.run();emitter.complete();});emitter.onError(e->cancel.run());
+        emitter.onCompletion(cancel);emitter.onTimeout(()->{cancel.run();try{send(emitter,"error",Map.of("message","AI响应超时，请稍后重试"));}catch(Exception ignored){/* 超时连接可能已经断开。 */}emitter.complete();});emitter.onError(e->cancel.run());
         try{task.set(executor.submit(()->{
             try{UserContext.set(identity);var result=service.streamChat(input,chunk->send(emitter,"delta",Map.of("text",chunk)),cancelled::get);send(emitter,"done",Map.of("conversationId",result.conversationId(),"mode",result.mode()));emitter.complete();}
             catch(Exception e){if(!cancelled.get()){try{send(emitter,"error",Map.of("message","AI生成中断，请稍后重试"));}catch(Exception ignored){/* 连接已关闭，无可发送的响应。 */}emitter.complete();}}

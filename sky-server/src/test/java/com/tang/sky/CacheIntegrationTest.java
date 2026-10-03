@@ -24,6 +24,12 @@ class CacheIntegrationTest {
             dish=service.create(new DishInput(category,"缓存菜",new BigDecimal("12.00"),"","",List.of()));service.status(dish,1);
             assertEquals(1,service.page(category,true,null,1,20).total());
             assertEquals(1,service.page(category,true,null,1,20).total());
+            service.update(dish,new DishInput(category,"缓存菜已更新",new BigDecimal("13.50"),"","",List.of()));
+            var updated=service.page(category,true,null,1,20).records().get(0);
+            assertEquals("缓存菜已更新",updated.name());assertEquals(new BigDecimal("13.50"),updated.price());
+            service.categoryStatus(category,0);assertEquals(0,service.page(category,true,null,1,20).total());
+            assertEquals(0,service.categories().stream().filter(c->c.id()==category).findFirst().orElseThrow().status());
+            service.categoryStatus(category,1);assertEquals(1,service.page(category,true,null,1,20).total());
             service.status(dish,0);assertEquals(0,service.page(category,true,null,1,20).total());
         }finally{if(dish!=0){service.status(dish,0);service.delete(dish);}service.deleteCategory(category);}
     }

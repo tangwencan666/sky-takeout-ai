@@ -7,7 +7,7 @@
 | 表 | 主要字段 | 约束与含义 |
 | --- | --- | --- |
 | user | id、username、password_hash、status、created_at | 用户名唯一；BCrypt；普通用户角色由服务端赋予 |
-| employee | id、username、password_hash、status、created_at | 管理账号与user分表；无默认账号；无开放注册 |
+| employee | id、username、password_hash、status、created_at | 管理账号与user分表；服务不自动创建；演示seed可显式导入；无开放注册 |
 | category | id、name、type、sort、status | type=1菜品/2套餐，status=0/1；已创建类型不可修改 |
 | dish | id、category_id、name、price、description、image、status | 分类外键；价格DECIMAL(10,2)；status索引；默认下架 |
 | dish_flavor | id、dish_id、name、options | 菜品外键，口味组和选项说明；随菜品同事务维护 |
@@ -45,7 +45,13 @@ erDiagram
 
 01_create_database.sql只创建新库；02—06以USE sky_takeout_ai开头，使用CREATE TABLE IF NOT EXISTS。没有DROP、TRUNCATE、ALTER或旧库写入。重复执行只跳过已存在表，不是迁移工具；修改已有表需要今后明确迁移方案，不擅自执行不可逆迁移。
 
-本次真实MySQL测试多数通过事务回滚清理；缓存与HTTP SSE测试使用独立随机数据并精确清理。浏览器临时账号也已清理。没有插入默认管理员或演示菜单。不会为了展示数据修改旧库。
+本次真实MySQL测试多数通过事务回滚清理；缓存与HTTP SSE测试使用独立随机数据并精确清理。最终HTTP与浏览器临时账号及其订单、购物车也已定向清理。按用户本轮授权新增02_seed_demo_data.sql，必须在所有DDL之后执行；已真实导入demo_user、demo_admin、4分类、12菜、10口味组、4套餐、12套餐组成、3示例订单、4订单明细，购物车为空。账号BCrypt12哈希，重复执行不覆盖密码或增加本演示数据数量。旧库不参与。
+
+Seed使用名称匹配已有菜单，仅适用于空库或本脚本专用演示数据；名称不是唯一约束，不能据此保证任意重名业务菜单或并发导入正确。本次没有UPDATE/DELETE已有业务记录或修改表结构。精确列、索引、外键和CHECK的真实读取快照见[DATABASE_SCHEMA_ACTUAL](DATABASE_SCHEMA_ACTUAL.md)。
+
+时间与删除策略：created_at仅存在于user、employee、orders，当前没有updated_at；没有软删除字段。菜单采用下架后物理删除、外键引用保护，订单保留名称/单价/口味快照。是否补充审计时间与软删除需单独设计迁移，不能宣称现在已有。
+
+约束边界：商品价格和数量有校验；orders.total_amount、order_detail.unit_price尚无数据库正数CHECK，order_detail.item_type尚无数据库枚举CHECK。当前应用只写经过Service核验的数据；这不等于能阻止绕过应用的任意SQL写入。可作为后续明确授权的迁移加固项，不在本轮擅自ALTER表。
 
 AI Memory为内存结构，RAG为本地向量存储；未来如需ai_conversation、ai_message、向量数据库或评价系统，应先设计保留期限和隐私边界，本版未建这些表。
 

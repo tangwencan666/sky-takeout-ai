@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 class AiSecurityTest {
     @AfterEach void cleanup() { UserContext.clear(); }
     @Test void missingRoleIsUnauthorizedRatherThanServerError() {
-        var jwt = new JwtService("");
+        var jwt = new JwtService(Base64.getEncoder().encodeToString(io.jsonwebtoken.Jwts.SIG.HS256.key().build().getEncoded()));
         var e = assertThrows(BusinessException.class, () -> jwt.parse(jwt.issue(1, null)));
         assertEquals(ErrorCode.UNAUTHORIZED, e.error());
     }

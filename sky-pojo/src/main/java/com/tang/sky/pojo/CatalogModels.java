@@ -15,7 +15,8 @@ public final class CatalogModels {
     public record FlavorInput(@NotBlank @Size(max=50) String name, @NotBlank @Size(max=500) String options) {}
     public record DishInput(@NotNull @Positive Long categoryId, @NotBlank @Size(max=100) String name,
             @NotNull @DecimalMin("0.01") @Digits(integer=8,fraction=2) BigDecimal price,
-            @NotNull @Size(max=500) String description, @NotNull @Size(max=500) String image,
+            @NotNull @Size(max=500) String description,
+            @NotNull @Size(max=500) @Pattern(regexp="^$|^https?://[^\\s]+$|^/(?!/)[^\\s]*$",message="图片必须为HTTP(S)地址或站内路径") String image,
             @NotNull @Size(max=20) List<@Valid FlavorInput> flavors) {}
     public record DishView(Dish dish, List<Flavor> flavors) {}
     public record PageView<T>(long total, int page, int size, List<T> records) {}

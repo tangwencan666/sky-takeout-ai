@@ -34,10 +34,15 @@ class ExceptionContractTest {
                 .andExpect(jsonPath("$.message").value("服务暂时不可用"))
                 .andExpect(jsonPath("$.trace").doesNotExist());
     }
+    @Test void missingQueryParameterAndWrongMethodAreClientErrors() throws Exception {
+        mvc.perform(get("/probe/parameter")).andExpect(status().isBadRequest());
+        mvc.perform(delete("/probe/parameter")).andExpect(status().isMethodNotAllowed());
+    }
     @RestController static class Probe {
         record Input(@NotBlank String name) {}
         @PostMapping("/probe") Result<String> input(@Valid @RequestBody Input input) { return Result.success(input.name()); }
         @GetMapping("/probe/business") void business() { throw new BusinessException(ErrorCode.CONFLICT); }
         @GetMapping("/probe/unknown") void unknown() { throw new IllegalStateException("internal private detail"); }
+        @GetMapping("/probe/parameter") void parameter(@RequestParam int status) {}
     }
 }

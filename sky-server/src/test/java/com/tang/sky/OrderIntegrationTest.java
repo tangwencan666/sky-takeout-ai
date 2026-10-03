@@ -26,7 +26,11 @@ class OrderIntegrationTest {
         cart.add(new AddInput("DISH",dish,"",2));var input=new CreateInput("request_001","地址","联系人");var order=orders.create(input);
         assertEquals(0,new BigDecimal("39.00").compareTo(order.order().totalAmount()));assertEquals(2,order.details().get(0).quantity());assertTrue(cart.view().items().isEmpty());
         assertEquals(order.order().id(),orders.create(input).order().id());assertEquals(1,orders.history(1,20).total());
-        UserContext.set(new UserContext.Identity(user+999999,"USER"));assertThrows(BusinessException.class,()->orders.detail(order.order().id()));
+        long other=auth.register(new Credentials("other_"+UUID.randomUUID().toString().replace("-", "").substring(0,16),"OtherTest!29")).id();
+        UserContext.set(new UserContext.Identity(other,"USER"));assertThrows(BusinessException.class,()->orders.detail(order.order().id()));
+        assertEquals(ErrorCode.NOT_FOUND,assertThrows(BusinessException.class,()->orders.cancel(order.order().id())).error());
+        assertEquals(ErrorCode.NOT_FOUND,assertThrows(BusinessException.class,()->orders.again(order.order().id())).error());
+        assertEquals(0,orders.history(1,20).total());assertTrue(cart.view().items().isEmpty());
         assertThrows(BusinessException.class,()->orderTools.getOrderDetail(order.order().id()));
         UserContext.set(new UserContext.Identity(user,"USER"));orders.cancel(order.order().id());assertEquals("CANCELLED",orders.detail(order.order().id()).order().status());orders.again(order.order().id());assertEquals(2,cart.view().items().get(0).quantity());
     }
@@ -35,6 +39,15 @@ class OrderIntegrationTest {
         long id=orders.create(new CreateInput("state_test","地址","联系人")).order().id();
         UserContext.set(new UserContext.Identity(1,"ADMIN"));assertThrows(BusinessException.class,()->orders.advance(id,Status.COMPLETED));
         for(var state:List.of(Status.WAITING_ACCEPT,Status.PREPARING,Status.DELIVERING,Status.COMPLETED))orders.advance(id,state);
+        assertEquals(ErrorCode.CONFLICT,assertThrows(BusinessException.class,()->orders.advance(id,Status.WAITING_ACCEPT)).error());
         UserContext.set(new UserContext.Identity(user,"USER"));assertEquals("COMPLETED",orders.detail(id).order().status());assertThrows(BusinessException.class,()->orders.cancel(id));
+    }
+    @Test void checkoutRepricesChangedDishInsteadOfUsingOldCartAmount() {
+        cart.add(new AddInput("DISH",dish,"",2));assertEquals(new BigDecimal("39.00"),cart.view().totalPrice());
+        var original=dishes.detail(dish,false).dish();
+        dishes.update(dish,new DishInput(original.categoryId(),original.name(),new BigDecimal("21.75"),"","",List.of()));
+        var order=orders.create(new CreateInput("reprice_test","地址","联系人"));
+        assertEquals(new BigDecimal("43.50"),order.order().totalAmount());
+        assertEquals(new BigDecimal("21.75"),order.details().get(0).unitPrice());
     }
 }

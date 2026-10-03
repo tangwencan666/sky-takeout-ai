@@ -43,4 +43,21 @@ class DishIntegrationTest {
         assertThrows(BusinessException.class,()->service.detail(ids[1],false));
         assertTrue(service.categories().stream().noneMatch(c->c.id()==ids[0]));
     }
+    @Test @Transactional void categoryStatusPagingAndReferences() {
+        String name="分页分类_"+UUID.randomUUID().toString().substring(0,8);
+        long category=service.createCategory(new CategoryInput(name,1,3));
+        long dish=service.create(input(category,"分类菜品"));service.status(dish,1);
+        service.updateCategory(category,new CategoryInput(name+"更新",1,4));
+        var page=service.categoryPage(1,name,1,1);
+        assertEquals(1,page.total());assertEquals(category,page.records().get(0).id());
+        service.categoryStatus(category,0);
+        assertEquals(0,service.categoryPage(1,name,1,1).records().get(0).status());
+        assertEquals(0,service.page(category,true,null,1,20).total());
+        assertThrows(BusinessException.class,()->service.detail(dish,true));
+        assertThrows(BusinessException.class,()->service.deleteCategory(category));
+        service.categoryStatus(category,1);assertNotNull(service.detail(dish,true));
+        assertThrows(BusinessException.class,()->service.categoryStatus(category,2));
+        assertThrows(BusinessException.class,()->service.categoryPage(3,null,1,20));
+        assertThrows(BusinessException.class,()->service.categoryPage(null,null,0,20));
+    }
 }

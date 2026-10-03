@@ -16,7 +16,7 @@ import org.springframework.data.redis.serializer.*;
 @Configuration @EnableCaching @ConditionalOnProperty(name="sky.cache.enabled",havingValue="true")
 public class CacheConfig implements CachingConfigurer {
     private static final Logger log=LoggerFactory.getLogger(CacheConfig.class);
-    @Bean public CacheManager cacheManager(RedisConnectionFactory factory,ObjectMapper json){
+    @Bean public RedisCacheManager redisCacheManager(RedisConnectionFactory factory,ObjectMapper json){
         var categories=new Jackson2JsonRedisSerializer<>(json,json.getTypeFactory().constructCollectionType(List.class,Category.class));
         var pages=new Jackson2JsonRedisSerializer<>(json,json.getTypeFactory().constructParametricType(PageView.class,Dish.class));
         var defaults=RedisCacheConfiguration.defaultCacheConfig().computePrefixWith(name->"sky:menu:v1:"+name+":")
@@ -25,7 +25,15 @@ public class CacheConfig implements CachingConfigurer {
         return RedisCacheManager.builder(RedisCacheWriter.nonLockingRedisCacheWriter(factory,BatchStrategies.scan(100)))
                 .withCacheConfiguration("categories",defaults.entryTtl(Duration.ofMinutes(10)).serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(categories)))
                 .withCacheConfiguration("dishes",defaults.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(pages)))
-                .transactionAware().enableStatistics().build();
+                .enableStatistics().build();
+    }
+    @Bean @Primary public CacheManager cacheManager(RedisCacheManager redis){
+        var safe=new CacheManager(){
+            private final java.util.Map<String,Cache> wrappers=new java.util.concurrent.ConcurrentHashMap<>();
+            public Cache getCache(String name){return wrappers.computeIfAbsent(name,n->{var cache=redis.getCache(n);return cache==null?null:new BestEffortCache(cache);});}
+            public java.util.Collection<String> getCacheNames(){return redis.getCacheNames();}
+        };
+        return new org.springframework.cache.transaction.TransactionAwareCacheManagerProxy(safe);
     }
     @Override public CacheErrorHandler errorHandler(){return new CacheErrorHandler(){
         public void handleCacheGetError(RuntimeException e,Cache c,Object k){log.warn("Cache read unavailable cache={}",c.getName());}

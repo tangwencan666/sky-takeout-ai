@@ -17,6 +17,17 @@ public class DishServiceImpl implements DishService {
     public DishServiceImpl(CatalogMapper mapper) { this.mapper=mapper; }
     @Cacheable(cacheNames="categories",key="'all'",condition="!T(org.springframework.transaction.support.TransactionSynchronizationManager).isActualTransactionActive()")
     public List<Category> categories() { return mapper.categories(); }
+    public PageView<Category> categoryPage(Integer type,String keyword,int page,int size) {
+        if (page<1 || page>100000 || size<1 || size>100 || (type!=null && type!=1 && type!=2)
+                || (keyword!=null && keyword.length()>100)) throw new BusinessException(ErrorCode.BAD_REQUEST);
+        return new PageView<>(mapper.categoryCount(type,keyword),page,size,mapper.categoryPage(type,keyword,(page-1)*size,size));
+    }
+    /** 分类停用后，用户菜单和依赖该分类菜品的套餐立即不可售；保留后台记录以便恢复。 */
+    @CacheEvict(cacheNames={"categories","dishes"},allEntries=true)
+    @Transactional public void categoryStatus(long id,int status) {
+        if (status!=0 && status!=1) throw new BusinessException(ErrorCode.BAD_REQUEST);
+        if (mapper.categoryStatus(id,status)==0) throw new BusinessException(ErrorCode.NOT_FOUND);
+    }
     @CacheEvict(cacheNames={"categories","dishes"},allEntries=true)
     @Transactional public long createCategory(CategoryInput input) { mapper.insertCategory(input); return mapper.lastId(); }
     @CacheEvict(cacheNames={"categories","dishes"},allEntries=true)

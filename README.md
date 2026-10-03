@@ -2,9 +2,9 @@
 
 Java 外卖业务与大模型应用学习项目：先用确定性的后端实现菜单、购物车和订单，再让AI通过受控工具读取真实业务数据。Maven多模块单体 + Vue用户端，适合按阶段阅读和练习。
 
-**验收状态（2026-10-03）：阶段1—19已实现并测试；阶段20的Docker配置已生成且config通过，但两次构建均因Docker Hub网络超时阻塞，尚未完成容器验收。阶段21的本机测试与文档已完成，部署项仍待补验。真实模型API未验证，默认Mock不产生模型调用费用。**
+**验收状态（2026-10-03）：本轮已重新审计并修复，真实MySQL/Redis回归58项全部通过，另有前端7项测试和真实HTTP完整下单验收。演示账号、12菜4套餐及3笔示例订单已导入。本轮Docker config通过，build仍因Docker Hub鉴权网络超时阻塞，容器启动尚未验收。真实模型API未验证，默认Mock不产生模型调用费用。**
 
-先读 [夜间报告](docs/NIGHTLY_REPORT.md)，学习过程见 [LEARNING](docs/LEARNING.md)，面试准备见 [INTERVIEW](docs/INTERVIEW.md)。
+先读 [完整审计](docs/AUDIT.md) 与 [最新验收报告](docs/ACCEPTANCE_REPORT.md)，历史进展见 [夜间报告](docs/NIGHTLY_REPORT.md)，学习过程见 [LEARNING](docs/LEARNING.md)，面试准备见 [INTERVIEW](docs/INTERVIEW.md)。
 
 ## 技术栈
 
@@ -28,7 +28,7 @@ sky-common/       Result、错误码、业务异常、认证上下文
 sky-pojo/         数据记录、输入DTO、组合VO、统计结果
 sky-server/       Controller → Service/Impl → Mapper，以及认证/缓存/AI
 sky-web/          Vue用户端
-sql/              01建库、02—06建表（仅新项目库）
+sql/              01建库、02—06建表、最后执行演示seed（仅新项目库）
 knowledge/        5份明确标记的教学规则
 scripts/          可选管理员初始化
 Dockerfile        后端构建与运行镜像（未完成构建验收）
@@ -54,16 +54,16 @@ flowchart LR
 ## 功能与边界
 
 - 普通用户注册登录；独立员工登录；菜单分类、菜品与口味、套餐及组成；购物车合并/减量/清空；订单创建、幂等、详情、历史、取消、再次加入购物车。
-- 管理员通过API维护分类/菜品/套餐、顺序推进订单状态、获取AI经营分析。**本版没有管理后台页面，也没有默认管理员和默认菜单。** 初次看到空菜单是正常的。
+- 管理员通过API维护分类/菜品/套餐、顺序推进订单状态、获取AI经营分析。**本版没有管理后台页面。** 本轮已按明确授权导入开发演示账号与菜单；管理员功能仍通过API使用。
 - 订单状态：PENDING_PAYMENT → WAITING_ACCEPT → PREPARING → DELIVERING → COMPLETED；用户可在前两种状态取消。管理员推进到WAITING_ACCEPT仅为教学模拟，**没有真实支付或退款**。
 - AI聊天、只读业务Tools、多轮Memory、预算套餐、SSE、RAG规则问答、管理员聚合统计。优惠券/会员/配送规则是示例知识，没有实现优惠券、积分、评价或真实配送服务。
-- 菜品口味有后端维护与返回；当前用户页面直接加购默认空口味，尚未提供完整口味选择器。
+- 菜品支持详情与口味选择，套餐支持查看搭配；口味是免费备注，不是付费规格，不改变价格。
 
 ## 数据库
 
 唯一新库为 **sky_takeout_ai**，旧库 **sky_take_out** 禁止读写、修改、删除或复用。连接URL固定新库名，不接受DB_NAME覆盖。完整表结构与关系见 [DATABASE_DESIGN](docs/DATABASE_DESIGN.md)。
 
-本机新库和10张表已创建并完成真实连接测试，不需要重新初始化。新机器才需在MySQL客户端依次执行sql/01至06；所有脚本仅CREATE IF NOT EXISTS，没有删除或迁移已有表的逻辑。不要以为IF NOT EXISTS可以自动升级旧表结构。
+本机新库和10张表已实查并导入演示数据，不需要重新初始化。新机器先执行下方六份DDL，最后才运行02_seed_demo_data.sql。DDL只CREATE IF NOT EXISTS；演示脚本只插入缺失数据，不覆盖账号密码。Seed按名称匹配，仅用于空库或本脚本的专用演示菜单，不保证适用于任意已有重名菜单或并发导入。实际结构见docs/DATABASE_SCHEMA_ACTUAL.md。
 
 ```powershell
 # 仅用于新环境：进入项目根目录，在交互提示中输入数据库密码
@@ -77,6 +77,7 @@ SOURCE sql/03_catalog.sql;
 SOURCE sql/04_setmeal.sql;
 SOURCE sql/05_cart.sql;
 SOURCE sql/06_orders.sql;
+SOURCE sql/02_seed_demo_data.sql;
 SELECT DATABASE();
 ```
 
@@ -93,11 +94,12 @@ $env:DB_USERNAME = 'root'
 $secret = Read-Host '本机MySQL密码' -AsSecureString
 $env:DB_PASSWORD = [Net.NetworkCredential]::new('', $secret).Password
 $secret.Dispose()
+$env:JWT_SECRET = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 $env:AI_MODE = 'mock'
 $env:CACHE_ENABLED = 'true'
 $env:RUN_DB_TESTS = 'true'
 mvn -B -ntp clean package
-# 必须看到37项测试、0失败、0错误、0跳过和全部模块SUCCESS后启动
+# 必须看到58项测试、0失败、0错误、0跳过和全部模块SUCCESS后启动
 java -jar sky-server/target/sky-server-0.0.1-SNAPSHOT.jar
 ```
 
@@ -115,7 +117,7 @@ npm run dev
 
 ### 创建自己的管理员与菜单
 
-管理员只能通过显式离线命令创建，没有开放注册接口。先按上面的步骤打包并在当前终端配置DB_PASSWORD，再运行：
+管理员只能通过显式离线命令创建，没有开放注册接口；开发演示账号已提供，可选创建自选管理员。先按上面的步骤打包并在当前终端配置DB_PASSWORD和JWT_SECRET，再运行：
 
 ```powershell
 .\scripts\Initialize-Admin.ps1 -Username your_admin_name
@@ -146,7 +148,7 @@ PUT /admin/dishes/返回ID/status?status=1
 | SERVER_PORT | 8080 |
 | REDIS_HOST / REDIS_PORT / REDIS_PASSWORD | 127.0.0.1 / 6379 / 空 |
 | CACHE_ENABLED | false；只缓存公开分类与可售菜品热点列表 |
-| JWT_SECRET | 空时每次启动随机；部署使用至少32随机字节的Base64，重启保持一致 |
+| JWT_SECRET | 必填，至少32随机字节的Base64；重启改变值会使旧Token失效 |
 | AI_MODE | mock；live才启用外部兼容模型 |
 | AI_API_KEY / AI_BASE_URL / AI_MODEL | 空 / https://api.deepseek.com / deepseek-chat |
 | RUN_DB_TESTS | 未设则跳过需要MySQL/Redis的测试；完整验收必须true |
@@ -163,7 +165,7 @@ PUT /admin/dishes/返回ID/status?status=1
 | --- | --- |
 | 公共 | GET /health；POST /user/auth/register、/user/auth/login、/admin/auth/login |
 | 当前身份 | GET /user/me、/admin/me |
-| 分类 | GET /user/categories、/admin/categories；管理员POST /admin/categories，PUT/DELETE /admin/categories/{id} |
+| 分类 | GET /user/categories（启用）、/admin/categories（全部）、/admin/categories/page（分页）；管理员POST /admin/categories，PUT/DELETE /admin/categories/{id}，PUT /{id}/status?status=0或1 |
 | 菜品 | GET /user/dishes、/user/dishes/{id}；管理员同名路径/admin/dishes支持GET/POST及/{id} PUT/DELETE，PUT /{id}/status?status=0或1 |
 | 套餐 | GET /user/setmeals、/user/setmeals/{id}；管理员/admin/setmeals同样提供CRUD和上下架 |
 | 购物车 | GET/POST/DELETE /user/cart；PATCH /user/cart/{id}/reduce；DELETE /user/cart/{id} |
@@ -220,16 +222,16 @@ docker compose up -d --wait
 # 应再验证http://127.0.0.1:18088/api/health和网页
 ```
 
-同一MySQL volume再次启动必须使用首次初始化时的容器密码。sql目录只在空volume首次启动时自动执行，参见[MySQL官方入口脚本](https://github.com/docker-library/mysql/blob/master/8.4/docker-entrypoint.sh)。默认Compose项目名sky-takeout-ai。停止使用`docker compose down`，**不要添加-v，也不要删除数据库volume**。
+同一MySQL volume再次启动必须使用首次初始化时的容器密码。DDL只在空volume首次启动时按显式挂载顺序执行，开发演示seed挂载为90_seed_demo_data.sql最后执行，参见[MySQL官方入口脚本](https://github.com/docker-library/mysql/blob/master/8.4/docker-entrypoint.sh)。默认Compose项目名sky-takeout-ai。停止使用`docker compose down`，**不要添加-v，也不要删除数据库volume**。
 
-当前config已通过，build在auth.docker.io拉取基础镜像令牌时超时两次，没有执行up，没有创建本项目容器或数据卷。不要把已有hello-world通过当成本项目部署验收。基础镜像为官方Maven/Temurin、Node、MySQL、Redis、Nginx标签；首次成功拉取后可进一步锁定digest。
+当前config已通过，本轮build重试仍在auth.docker.io拉取基础镜像令牌时超时，没有执行up，没有创建本项目容器或数据卷。不要把已有hello-world通过当成本项目部署验收。基础镜像为官方Maven/Temurin、Node、MySQL、Redis、Nginx标签；首次成功拉取后可进一步锁定digest。
 
 ## 测试与当前证据
 
-- 后端全量验收：RUN_DB_TESTS=true，mvn clean package，37项、0失败、0错误、0跳过，全部模块SUCCESS；真实MySQL与Redis参与。
-- Maven Surefire强制AI_MODE=mock；即使外部终端设live，也不让普通测试调用收费模型。明确真实模型集成尚未验证。
-- 前端npm run build成功；Element Plus全量引入带约1.05MB JS体积警告，尚未按需拆包。
-- Chrome浏览器验证注册登录、空菜单/购物车/订单、Mock SSE和退出登录，无pageerror。未做有商品下单的浏览器全流程；后端真实事务测试覆盖下单与核价。
+- 后端全量验收：RUN_DB_TESTS=true，mvn clean package，58项、0失败、0错误、0跳过，全部模块SUCCESS；真实MySQL与Redis参与。
+- Maven Surefire强制AI_MODE=mock；Provider适配器另连接本机HTTP替身验证同步、SSE和错误不重试，未访问真实供应商。等待API Key进行真实验证。
+- 前端npm test的7项测试及npm run build成功；Element Plus全量引入带约1.05MB JS体积警告，尚未按需拆包。
+- Chrome浏览器14组流程、24项视口检查通过，无pageerror；真实选微辣菜品28元+套餐36元，下单64元并核对详情，取消/再来一单、Mock SSE及四类RAG来源均通过。三类网络/AI503/401错误显示另用浏览器拦截模拟，详见验收报告。
 - Docker config通过，build网络阻塞，up及健康检查未执行。
 - 当前会话凭据扫描覆盖可跟踪文件和Git历史；SQL检查无旧库操作及破坏性DDL。扫描不代表能发现所有未知秘密格式。
 
@@ -237,4 +239,23 @@ docker compose up -d --wait
 
 先沿着下单事务读代码，再读JWT身份链、缓存失效、只读Tool权限、结构化核价、Memory和RAG。亮点是业务事实与模型文本分离，以及明确记录Mock能力边界；不要在简历上声称真实支付、微服务、生产高并发或真实模型效果已经验证。
 
-完整学习记录保留于LEARNING.md，INTERVIEW.md提供36个问答。下一步优先恢复Docker Hub连通性并完成部署验收，再自行创建管理员和少量菜单练习完整操作。后续真实模型效果评测、管理后台页面、口味选择器、语义Embedding、生产安全和可观测性均需独立安排。
+完整学习记录保留于LEARNING.md，INTERVIEW.md提供36个问答。下一步优先恢复Docker Hub连通性并完成部署验收，使用已提供的开发演示账号练习完整操作。后续真实模型效果评测、管理后台页面、语义Embedding、生产安全和可观测性均需独立安排。
+
+## 开发环境演示账号
+
+仅用于本机开发演示，已按本轮要求初始化：
+
+| 入口 | 账号 | 开发演示密码 |
+| --- | --- | --- |
+| Vue用户端 | demo_user | SkyDemo2026! |
+| 管理员API /admin/auth/login | demo_admin | SkyDemo2026! |
+
+数据库仅保存BCrypt成本12哈希。此公开演示口令是本轮明确授权的开发数据，不是MySQL/Redis密码、JWT密钥或API Key。Java/Vue源码未预置演示密码。管理员没有单独前端，不能在用户登录页登录demo_admin。
+
+演示数据：4分类、12菜、10组口味、4套餐、3笔样例订单（已完成/已取消/待付款）；图片是本地示意图，非实拍。首次为空的新库可在六份DDL之后执行sql/02_seed_demo_data.sql；本机已执行并验证重复导入无数量增长，不需要再导入。若已有自己维护的重名菜单，先审查匹配条件，不要盲目重跑Seed。
+
+## 本轮真实HTTP验收脚本
+
+scripts/acceptance-api.cjs访问真正运行的Spring Boot接口，读取ACCEPTANCE_API_URL、DEMO_PASSWORD、JWT_SECRET等当前环境变量，验证真实登录、过期签名Token、越权、核价下单、幂等、状态机、RAG来源和SSE。运行前要求专用演示菜单及demo_user购物车为空；不要在有个人购物车/业务数据的环境盲目执行。它会创建e2e_前缀随机验收账号及订单；仅在开发新库运行，结束后按生成的fixture文件定向清理。本轮数据已清理，演示数据保留。该脚本没有硬编码演示密码或密钥，不能将输出Token保存到文件。
+
+Vite支持仅服务端使用的API_PROXY_TARGET环境变量，方便验收时把API代理到独立18080端口，不影响默认8080配置。浏览器仍只需访问一个前端地址。

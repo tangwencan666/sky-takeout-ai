@@ -1,0 +1,46 @@
+{
+  "base": "http://127.0.0.1:18080",
+  "checks": 10,
+  "results": [
+    {
+      "name": "health",
+      "result": "PASS"
+    },
+    {
+      "name": "real-register-login-admin-login",
+      "result": "PASS"
+    },
+    {
+      "name": "bad-password-missing-account-and-tokens",
+      "result": "PASS"
+    },
+    {
+      "name": "menu-seed-and-parameter-validation",
+      "result": "PASS"
+    },
+    {
+      "name": "cart-merge-reduce-setmeal-and-user-isolation",
+      "result": "PASS"
+    },
+    {
+      "name": "real-order-checkout-details-and-idempotency",
+      "result": "PASS"
+    },
+    {
+      "name": "order-cross-user-read-cancel-reorder-rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "cancel-reorder-controlled-state-machine",
+      "result": "PASS"
+    },
+    {
+      "name": "mock-AI-memory-plan-rag-and-admin-real-statistics",
+      "result": "PASS"
+    },
+    {
+      "name": "authenticated-SSE-delta-done",
+      "result": "PASS"
+    }
+  ]
+}

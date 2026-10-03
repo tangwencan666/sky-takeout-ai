@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.*;
 public class CatalogController {
     private final DishService service;
     public CatalogController(DishService service) { this.service=service; }
-    @GetMapping({"/admin/categories","/user/categories"}) public Result<List<Category>> categories() { return Result.success(service.categories().stream().filter(c->c.status()==1).toList()); }
+    @GetMapping("/user/categories") public Result<List<Category>> categories() { return Result.success(service.categories().stream().filter(c->c.status()==1).toList()); }
+    @GetMapping("/admin/categories") public Result<List<Category>> adminCategories() { return Result.success(service.categories()); }
+    @GetMapping("/admin/categories/page") public Result<PageView<Category>> categoryPage(@RequestParam(required=false) Integer type,@RequestParam(required=false) String keyword,@RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="20") int size) { return Result.success(service.categoryPage(type,keyword,page,size)); }
+    @PutMapping("/admin/categories/{id}/status") public Result<Void> categoryStatus(@PathVariable long id,@RequestParam int status) { service.categoryStatus(id,status);return Result.success(null); }
     @PostMapping("/admin/categories") public Result<Long> category(@Valid @RequestBody CategoryInput input) { return Result.success(service.createCategory(input)); }
     @PutMapping("/admin/categories/{id}") public Result<Void> category(@PathVariable long id,@Valid @RequestBody CategoryInput input) { service.updateCategory(id,input); return Result.success(null); }
     @DeleteMapping("/admin/categories/{id}") public Result<Void> deleteCategory(@PathVariable long id) { service.deleteCategory(id); return Result.success(null); }
