@@ -1,0 +1,180 @@
+{
+  "startedAt": "2026-10-03T05:00:53.750Z",
+  "result": "FAIL",
+  "stages": [
+    {
+      "name": "Memory-round-1",
+      "result": "PASS",
+      "startedAt": "2026-10-03T05:00:54.155Z",
+      "http": [
+        {
+          "path": "/user/ai/chat",
+          "status": 200,
+          "elapsedMs": 1973,
+          "isAi": true
+        }
+      ],
+      "prompt": "我想吃辣的。",
+      "reply": {
+        "mode": "live",
+        "conversationId": "live_mem_a86d24fc30ebb153",
+        "message": "根据当前菜单，辣的菜品有这几道：\n\n| 菜品 | 价格 | 辣度/描述 |\n|------|------|-----------|\n| 宫保鸡丁 | ¥28 | 微辣，鸡丁与花生，经典下饭菜 |\n| 鱼香肉丝 | ¥26 | 酸甜微辣，猪肉丝与时蔬 |\n| 麻婆豆腐 | ¥18 | 麻辣豆腐，适合配米饭 |\n\n其中**麻婆豆腐**最辣（麻辣），宫保鸡丁和鱼香肉丝偏微辣。\n\n请问您想选哪一道？或者告诉我您的预算和用餐人数，我帮您搭配一下。另外，如果您有忌口（比如花生过敏），也请提前告诉我。"
+      },
+      "finishedAt": "2026-10-03T05:00:56.130Z"
+    },
+    {
+      "name": "Memory-round-2",
+      "result": "PASS",
+      "startedAt": "2026-10-03T05:00:56.131Z",
+      "http": [
+        {
+          "path": "/user/ai/chat",
+          "status": 200,
+          "elapsedMs": 1715,
+          "isAi": true
+        }
+      ],
+      "prompt": "30块以内。",
+      "reply": {
+        "mode": "live",
+        "conversationId": "live_mem_a86d24fc30ebb153",
+        "message": "您说的30块以内，是指**单道菜**不超过30元，还是**整单**预算30元呢？\n\n先按单道菜30元以内给您筛一下辣味菜品：\n\n| 菜品 | 价格 | 辣度/描述 |\n|------|------|-----------|\n| 宫保鸡丁 | ¥28 | 微辣，鸡丁与花生 |\n| 鱼香肉丝 | ¥26 | 酸甜微辣，猪肉丝与时蔬 |\n| 麻婆豆腐 | ¥18 | 麻辣豆腐，适合配米饭 |\n\n这三道都在30元以内。如果按**整单30元**算，可以选麻婆豆腐（¥18）再加一道便宜的菜，或者单点宫保鸡丁（¥28）。\n\n请告诉我：\n1. 是单菜预算还是整单预算？\n2. 几个人吃？\n\n我再帮您具体搭配。另外提醒一下，宫保鸡丁含花生，如有过敏请避开。"
+      },
+      "contextPreserved": true,
+      "referencedMenuNames": [
+        "宫保鸡丁",
+        "鱼香肉丝",
+        "麻婆豆腐",
+        "米饭"
+      ],
+      "isolationEvidence": "Different user/conversation isolation must be supported by local MemoryTest; this pair only proves the live shared-conversation context.",
+      "finishedAt": "2026-10-03T05:00:57.847Z"
+    },
+    {
+      "name": "Structured-Output",
+      "result": "FAIL",
+      "startedAt": "2026-10-03T05:00:57.847Z",
+      "http": [
+        {
+          "path": "/user/ai/meal-plan",
+          "status": 409,
+          "elapsedMs": 1034,
+          "isAi": true
+        }
+      ],
+      "prompt": "两个人预算80，生成一个套餐。",
+      "finishedAt": "2026-10-03T05:00:58.881Z"
+    }
+  ],
+  "aiApplicationRequests": 3,
+  "runtimePolicy": "sequential, 45-second deadline per request, no retries, no business mutations",
+  "statusBefore": {
+    "mode": "live",
+    "model": "deepseek-flash",
+    "provider": "deepseek",
+    "keyConfigured": true,
+    "providerVerified": true,
+    "verificationScope": "process-probe",
+    "lastVerifiedAt": "2026-10-03T05:00:10.443416200Z",
+    "instanceId": "154f6e00-746f-4c30-846a-412f98fb81a4"
+  },
+  "menuTruth": [
+    {
+      "id": 118,
+      "name": "宫保鸡丁",
+      "price": 28,
+      "description": "微辣，鸡丁与花生，经典下饭菜",
+      "status": 1
+    },
+    {
+      "id": 119,
+      "name": "鱼香肉丝",
+      "price": 26,
+      "description": "酸甜微辣，猪肉丝与时蔬",
+      "status": 1
+    },
+    {
+      "id": 120,
+      "name": "麻婆豆腐",
+      "price": 18,
+      "description": "麻辣豆腐，适合配米饭",
+      "status": 1
+    },
+    {
+      "id": 121,
+      "name": "香菇滑鸡",
+      "price": 25,
+      "description": "香菇与鸡肉，鲜香不辣",
+      "status": 1
+    },
+    {
+      "id": 122,
+      "name": "清炒时蔬",
+      "price": 16,
+      "description": "当季蔬菜清炒，清淡不辣",
+      "status": 1
+    },
+    {
+      "id": 123,
+      "name": "蒜蓉西兰花",
+      "price": 18,
+      "description": "蒜香西兰花，清爽不辣",
+      "status": 1
+    },
+    {
+      "id": 124,
+      "name": "番茄炒蛋",
+      "price": 20,
+      "description": "番茄与鸡蛋，酸甜不辣",
+      "status": 1
+    },
+    {
+      "id": 125,
+      "name": "扬州炒饭",
+      "price": 22,
+      "description": "鸡蛋、玉米与豌豆炒饭，不辣",
+      "status": 1
+    },
+    {
+      "id": 126,
+      "name": "米饭",
+      "price": 3,
+      "description": "一份热米饭",
+      "status": 1
+    },
+    {
+      "id": 127,
+      "name": "紫菜蛋花汤",
+      "price": 8,
+      "description": "紫菜与鸡蛋，温热清汤",
+      "status": 1
+    },
+    {
+      "id": 128,
+      "name": "酸梅汤",
+      "price": 9,
+      "description": "酸甜解腻饮品",
+      "status": 1
+    },
+    {
+      "id": 129,
+      "name": "柠檬红茶",
+      "price": 12,
+      "description": "清新柠檬红茶",
+      "status": 1
+    }
+  ],
+  "latestOrderTruth": {
+    "id": 58,
+    "number": "2452af8e-60db-4a24-8097-ca1b3c91a544",
+    "status": "PENDING_PAYMENT",
+    "amount": 28
+  },
+  "failure": {
+    "phase": "Structured-Output",
+    "category": "http-409",
+    "type": "AcceptanceFailure",
+    "message": "Local API rejected /user/ai/meal-plan; raw upstream error body suppressed"
+  },
+  "finishedAt": "2026-10-03T05:00:58.882Z"
+}

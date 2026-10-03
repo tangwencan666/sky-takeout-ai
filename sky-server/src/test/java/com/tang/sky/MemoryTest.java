@@ -17,6 +17,7 @@ class MemoryTest {
         var seen=new AtomicReference<String>();ChatModel model=prompt->{seen.set(prompt.getInstructions().toString());return new ChatResponse(List.of(new Generation(new AssistantMessage("测试回复"))));};
         var service=new AiAssistantService(model,new PromptCatalog(),"mock");UserContext.set(new UserContext.Identity(1,"USER"));
         service.chat(new Request("我想吃辣的","same"));service.chat(new Request("30块以内","same"));assertTrue(seen.get().contains("我想吃辣的"));assertTrue(seen.get().contains("30块以内"));
+        service.chat(new Request("新的会话","other"));assertFalse(seen.get().contains("我想吃辣的"));assertFalse(seen.get().contains("30块以内"));
         UserContext.set(new UserContext.Identity(2,"USER"));service.chat(new Request("午餐","same"));assertFalse(seen.get().contains("我想吃辣的"));
     }
     @Test void boundedHistoryAndFailureDoesNotPersist(){

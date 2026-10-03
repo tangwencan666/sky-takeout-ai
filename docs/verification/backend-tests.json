@@ -21,8 +21,22 @@
     "skipped": 0
   },
   {
+    "name": "com.tang.sky.AiDeadlineTest",
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
     "name": "com.tang.sky.AiFailureHttpTest",
     "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "name": "com.tang.sky.AiFailureTest",
+    "tests": 3,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -43,7 +57,7 @@
   },
   {
     "name": "com.tang.sky.AiProviderServiceTest",
-    "tests": 3,
+    "tests": 5,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -141,14 +155,14 @@
   },
   {
     "name": "com.tang.sky.LocalProviderTest",
-    "tests": 1,
+    "tests": 3,
     "failures": 0,
     "errors": 0,
     "skipped": 0
   },
   {
     "name": "com.tang.sky.MealPlanTest",
-    "tests": 2,
+    "tests": 6,
     "failures": 0,
     "errors": 0,
     "skipped": 0

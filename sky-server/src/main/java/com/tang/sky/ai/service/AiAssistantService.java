@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.slf4j.*;
 import com.tang.sky.ai.security.AiRequestAudit;
+import com.tang.sky.ai.security.AiFailure;
 /** AI边界隔离模型失败，传统业务不依赖模型成功；不记录用户原文、Key或Token。 */
 @Service
 public class AiAssistantService {
@@ -33,7 +34,7 @@ public class AiAssistantService {
     }
     protected String replyMessages(java.util.List<org.springframework.ai.chat.messages.Message> messages){
         try{return com.tang.sky.ai.security.AiOutput.checked(request(messages).call().content());}
-        catch(RuntimeException e){log.warn("AI request failed type={}",e.getClass().getSimpleName());throw new BusinessException(ErrorCode.AI_UNAVAILABLE);}
+        catch(RuntimeException e){throw AiFailure.classify(e);}
     }
     protected ChatClient.ChatClientRequestSpec request(java.util.List<org.springframework.ai.chat.messages.Message> messages){
         var request=client.prompt().system(prompts.ordering()).messages(messages);

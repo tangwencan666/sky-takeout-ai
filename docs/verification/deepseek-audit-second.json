@@ -1,0 +1,39 @@
+[
+  {
+    "timestamp": "2026-10-03T13:08:23.362+08:00",
+    "kind": "request",
+    "requestId": "ed4b9a45-a5da-4404-933e-10f5f78fda78",
+    "conversationId": "-",
+    "feature": "provider-probe",
+    "model": "deepseek-flash",
+    "durationMs": "1334",
+    "toolCall": "false",
+    "toolCount": "0",
+    "success": "true",
+    "category": "-",
+    "upstreamStatus": "null"
+  },
+  {
+    "timestamp": "2026-10-03T13:08:25.845+08:00",
+    "kind": "meal-plan validation",
+    "requestId": "a911991b-89d2-4e52-8d13-0ccc12665ae3",
+    "category": "DISH_ID_DUPLICATE",
+    "dishCount": "6",
+    "budget": "80",
+    "recalculatedTotal": "75.00"
+  },
+  {
+    "timestamp": "2026-10-03T13:08:25.849+08:00",
+    "kind": "request",
+    "requestId": "a911991b-89d2-4e52-8d13-0ccc12665ae3",
+    "conversationId": "-",
+    "feature": "meal-plan",
+    "model": "deepseek-flash",
+    "durationMs": "1828",
+    "toolCall": "false",
+    "toolCount": "0",
+    "success": "false",
+    "category": "MEAL_PLAN_DISH_ID_DUPLICATE",
+    "upstreamStatus": "null"
+  }
+]

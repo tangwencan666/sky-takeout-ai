@@ -1,0 +1,12 @@
+{
+  "verifiedAt": "2026-10-03T13:08:23.3825182+08:00",
+  "stage": "Probe",
+  "result": "PASS",
+  "instanceId": "4eb14cb1-9dd1-486f-8fb6-0d15b2e4862e",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "mode": "live",
+  "greetingRequestsSent": 1,
+  "elapsedMilliseconds": 2488,
+  "subsequentStagesRun": false
+}

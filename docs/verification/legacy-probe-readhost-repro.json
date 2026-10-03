@@ -1,0 +1,12 @@
+{
+  "LegacyScriptFromHead": true,
+  "TraceLevel": 1,
+  "WasStillWaitingAfter2500ms": true,
+  "TraceReachedReadHost": true,
+  "LocalRequests": 1,
+  "LoginRequests": 0,
+  "ProbeRequests": 0,
+  "OnlyOwnedTestChildStopped": true,
+  "ProviderRequests": 0,
+  "CredentialValuesLogged": false
+}

@@ -7,6 +7,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PromptCatalog {
     private final String ordering;
-    public PromptCatalog() throws IOException {ordering=new ClassPathResource("prompts/ordering-system.txt").getContentAsString(StandardCharsets.UTF_8);}
+    private final String mealPlan;
+    public PromptCatalog() throws IOException {
+        ordering=new ClassPathResource("prompts/ordering-system.txt").getContentAsString(StandardCharsets.UTF_8);
+        mealPlan=new ClassPathResource("prompts/meal-plan-system.txt").getContentAsString(StandardCharsets.UTF_8);
+    }
     public String ordering(){return ordering;}
+    public String mealPlan(){return mealPlan;}
 }

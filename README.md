@@ -2,7 +2,7 @@
 
 Java 外卖业务与大模型应用学习项目：先用确定性的后端实现菜单、购物车和订单，再让AI通过受控工具读取真实业务数据。Maven多模块单体 + Vue用户端，适合按阶段阅读和练习。
 
-**验收状态（2026-10-03）：最新后端回归69项全部通过（含数据库就绪与真实模式配置/探针检查），真实MySQL/Redis参与；前端7项测试及真实HTTP/浏览器完整下单已验证。演示账号、12菜4套餐及3笔示例订单已导入。后续预览修复又用demo_user真实下单28元，见[预览修复记录](docs/PREVIEW_FIX.md)。Docker构建仍因Docker Hub鉴权网络超时阻塞；真实模型API未验证，默认Mock不产生模型调用费用。**
+**验收状态（2026-10-03）：最新后端回归83项全部通过（含数据库就绪与真实模式配置/探针检查），真实MySQL/Redis参与；前端7项测试及真实HTTP/浏览器完整下单已验证。演示账号、12菜4套餐及3笔示例订单已导入。后续预览修复又用demo_user真实下单28元，见[预览修复记录](docs/PREVIEW_FIX.md)。Docker构建仍因Docker Hub鉴权网络超时阻塞。真实DeepSeek的Probe、浏览器Dish/SSE、Memory、Structured Output、RAG和Order验证均已通过；结构化方案经Java查库重算75元，不超过80元预算。最终证据见[真实AI验收记录](docs/REAL_AI_VERIFICATION.md)。普通Maven回归保持Mock，不产生模型调用费用。**
 
 先读 [完整审计](docs/AUDIT.md) 与 [最新验收报告](docs/ACCEPTANCE_REPORT.md)，历史进展见 [夜间报告](docs/NIGHTLY_REPORT.md)，学习过程见 [LEARNING](docs/LEARNING.md)，面试准备见 [INTERVIEW](docs/INTERVIEW.md)。
 
@@ -30,7 +30,7 @@ sky-server/       Controller → Service/Impl → Mapper，以及认证/缓存/A
 sky-web/          Vue用户端
 sql/              01建库、02—06建表、最后执行演示seed（仅新项目库）
 knowledge/        5份明确标记的教学规则
-scripts/          可选管理员初始化
+scripts/          预览启停、真实AI启动与限时Probe、可选管理员初始化
 Dockerfile        后端构建与运行镜像（未完成构建验收）
 docker-compose.yml  MySQL、Redis、backend、frontend、nginx
 ```
@@ -85,7 +85,7 @@ SELECT DATABASE();
 
 ## 本机启动
 
-在项目根目录打开PowerShell。以下用于普通回归与Mock预览，仅设置当前终端，不改系统JAVA_HOME/PATH，也不删除JDK11。真实DeepSeek模式按下方“真实模型启动与最小验证”操作，使用已加载Key的同一个PowerShell。
+在项目根目录打开PowerShell。以下用于普通回归与Mock预览，仅设置当前终端，不改系统JAVA_HOME/PATH，也不删除JDK11。真实DeepSeek模式使用下方“真实模型启动与最小验证”中的独立入口；本轮已经运行，无需现在重复启动。
 
 ```powershell
 $env:JAVA_HOME = 'D:\java\jdk-17.0.20.1+1'
@@ -99,7 +99,7 @@ $env:AI_MODE = 'mock'
 $env:CACHE_ENABLED = 'true'
 $env:RUN_DB_TESTS = 'true'
 mvn -B -ntp clean package
-# 必须看到69项测试、0失败、0错误、0跳过和全部模块SUCCESS后启动
+# 必须看到83项测试、0失败、0错误、0跳过和全部模块SUCCESS后启动
 java -jar sky-server/target/sky-server-0.0.1-SNAPSHOT.jar
 ```
 
@@ -123,27 +123,23 @@ npm run dev
 ./scripts/Start-Preview.ps1 -JavaHome 'D:\java\jdk-17.0.20.1+1'
 ```
 
-脚本配对启动8080和15173，显式设置代理目标；先验证真实数据库连接、库名与SELECT 1，再验证15173/api/health/ready，成功后才报告ready。AI模式可由`-AiMode mock`或`-AiMode live`明确指定；省略时继承当前终端AI_MODE，未设置才默认Mock，不会把已选live静默改回Mock。凭据仅由子进程继承；缺少JWT_SECRET时临时生成，不保存。占用端口时直接拒绝，不终止未知服务。脚本报告ready后访问15173；再次启动前用`./scripts/Stop-Preview.ps1`核对并停止本项目记录的实例。PID及非敏感日志在Git忽略的logs/preview/。不要仅凭/health=200判断数据库可用。
+脚本配对启动8080和15173，显式设置代理目标；先验证真实数据库连接、库名与SELECT 1，再验证15173/api/health/ready，成功后才报告ready。AI模式可由`-AiMode mock`或`-AiMode live`明确指定；省略时继承当前终端AI_MODE，未设置才默认Mock，不会把已选live静默改回Mock。敏感启动变量只交给Java后端；启动Vite时移除AI_API_KEY、DB_PASSWORD、JWT_SECRET等敏感变量，再恢复父进程环境。缺少JWT_SECRET时临时生成，不保存。占用端口时直接拒绝，不终止未知服务。脚本报告ready后访问15173；再次启动前用`./scripts/Stop-Preview.ps1`核对并停止本项目记录的实例。PID及非敏感日志在Git忽略的logs/preview/。不要仅凭/health=200判断数据库可用。
 
 ### 真实模型启动与最小验证
 
-必须设置`AI_MODE=live`；本项目不使用`AI_ENABLED`、`AI_PROVIDER`或额外Spring profile作为开关。供应商由`AI_BASE_URL`识别，使用已在当前PowerShell加载的`AI_API_KEY`，不要重新输出、复制到文档或写入源码。推荐`AI_BASE_URL=https://api.deepseek.com`、`AI_MODEL=deepseek-flash`；本项目也接受根地址后加`/v1`。官方已公告旧模型名`deepseek-chat`和`deepseek-reasoner`于2026-07-24停用，当前Flash调用名见[DeepSeek更新日志](https://api-docs.deepseek.com/updates/)与[官方调用说明](https://api-docs.deepseek.com/)。
-
-在已加载Key、DB_PASSWORD且已打包本轮最新JAR的**同一个PowerShell**执行：
+本轮已经直接启动并验证真实模式，无需用户现在再次运行。今后重启时，在项目根目录、已安全加载`DB_PASSWORD`和`DEMO_PASSWORD`的PowerShell中使用一条命令；后端JAR与前端依赖须已准备好：
 
 ```powershell
-$ErrorActionPreference = 'Stop'
-$env:AI_MODE = 'live'
-$env:AI_BASE_URL = 'https://api.deepseek.com'
-$env:AI_MODEL = 'deepseek-flash'
-./scripts/Stop-Preview.ps1
-./scripts/Start-Preview.ps1 -JavaHome 'D:\java\jdk-17.0.20.1+1' -AiMode live
-./scripts/Test-AiLive.ps1 -Stage Probe
+.\scripts\Start-DeepSeek.ps1
 ```
 
-启动与网页“刷新状态”不会调用模型。只有最后一行明确执行最小Probe：固定“你好”、最多64输出token，不带Tools/Memory/RAG、不重试；同一后端进程验证成功后缓存结果，不重复收费问候。脚本需要登录开发账号，未设置DEMO_PASSWORD时自动隐藏输入。DB_PASSWORD若尚未加载，按[真实AI验证指南](docs/AI_LIVE_VERIFICATION.md)隐藏输入后再启动。
+该入口优先使用进程已有的`AI_API_KEY`；未设置时，只读用户已授权的`D:\project632432643\.env`，校验官方供应商后将`LLM_API_KEY`载入内存供后端使用。旧文件不修改，Key不写入本项目；结束后恢复调用者原有AI环境变量。入口统一设置`AI_MODE=live`、`AI_BASE_URL=https://api.deepseek.com`、`AI_MODEL=deepseek-flash`，不沿用旧模型名。当前模型名见[DeepSeek更新日志](https://api-docs.deepseek.com/updates/)与[官方调用说明](https://api-docs.deepseek.com/)。
 
-当前完成的是Provider、配置和最小验证流程准备，**尚未请求真实DeepSeek**：Key仍只在用户自己的PowerShell，不能据此写“真实AI验收通过”。网页“真实模型 · 已验证”仅代表当前进程的基础Probe通过；Dish Tool、Memory、Structured Output、RAG、Order Tool及SSE后续依次单独验收。完整说明与成功判据见[AI_LIVE_VERIFICATION](docs/AI_LIVE_VERIFICATION.md)。
+入口依次校验并停止本项目旧预览、启动固定8080/15173配对服务、确认数据库与代理就绪，再执行最小Probe。它需要DB_PASSWORD与DEMO_PASSWORD已在环境中，缺失立即停止，没有隐藏输入等待。独立运行`Test-AiLive.ps1 -Stage Probe`时，缺少DEMO_PASSWORD立即输出`LIVE_PROBE=FAIL category=LOCAL_CREDENTIALS_MISSING`。本项目不使用AI_ENABLED、AI_PROVIDER或额外Spring profile作为开关。
+
+最小Probe固定“你好”、最多64输出token，不带Tools/Memory/RAG，不重试；同一后端进程成功后缓存结果，不追加问候请求。Probe脚本默认总预算45秒（预留1秒清理），本机就绪/登录/状态读取各最多5秒，单次Probe最多40秒，后端生成总截止35秒；所有本机请求还受剩余总预算约束。终端显示安全阶段进度及`LIVE_PROBE=PASS`或`LIVE_PROBE=FAIL category=...`，不打印Key、JWT或模型回复。45秒不包括前面的服务启动等待。
+
+`Start-Preview.ps1`与网页“刷新状态”不调用模型；`Start-DeepSeek.ps1`默认包含显式Probe，应按真实模型操作使用。网页“真实模型 · 已验证”只代表当前进程基础Probe成功。当前Probe、Dish/SSE、Memory、Structured Output、RAG、Order均已通过；范围与操作说明见[AI_LIVE_VERIFICATION](docs/AI_LIVE_VERIFICATION.md)，最终证据以[REAL_AI_VERIFICATION](docs/REAL_AI_VERIFICATION.md)为准。
 
 ### 创建自己的管理员与菜单
 
@@ -180,12 +176,13 @@ PUT /admin/dishes/返回ID/status?status=1
 | CACHE_ENABLED | false；只缓存公开分类与可售菜品热点列表 |
 | JWT_SECRET | 必填，至少32随机字节的Base64；重启改变值会使旧Token失效 |
 | AI_MODE | mock；live才启用外部兼容模型 |
-| AI_API_KEY / AI_BASE_URL / AI_MODEL | 空 / https://api.deepseek.com / deepseek-flash；live启动需要当前终端明确配置 |
+| AI_API_KEY / AI_BASE_URL / AI_MODEL | 空 / https://api.deepseek.com / deepseek-flash；Start-DeepSeek支持已有Key优先或读取已授权旧配置 |
+| DEMO_PASSWORD | Probe登录已有开发账号使用；必须预先存在于进程环境，不等待交互输入 |
 | RUN_DB_TESTS | 未设则跳过需要MySQL/Redis的测试；完整验收必须true |
 | ADMIN_INIT_USERNAME / ADMIN_INIT_PASSWORD | 仅显式初始化子进程使用，脚本结束清理 |
 | MYSQL_ROOT_PASSWORD / WEB_PORT | 仅Docker；独立容器root密码 / 18088 |
 
-.env.example只有变量说明和占位符；Spring Boot不自动加载.env。真实密码或Key不得写application.yml、源码、测试、文档、.env.example或Git。普通Maven回归强制Mock；真实Provider验证单独由`Test-AiLive.ps1 -Stage Probe`显式触发，目前尚未执行真实DeepSeek调用。
+.env.example只有变量说明和占位符；Spring Boot不自动加载.env，读取已授权旧配置是Start-DeepSeek入口的显式操作。真实密码或Key不得写application.yml、源码、测试、文档、.env.example或Git。普通Maven回归在系统属性与测试进程环境两层强制Mock并清空AI_API_KEY；真实Provider验证由独立入口显式触发，本轮已取得上述真实通过证据。
 
 ## API概览
 
@@ -215,7 +212,7 @@ PUT /admin/dishes/返回ID/status?status=1
 
 Memory键为认证userId + conversationId，最近20条消息，空闲30分钟过期，最多1000会话，同会话并发生成返回409，失败半截回复不落历史。重启丢失记忆，尚未持久化到Redis。
 
-SSE POST输出delta/done/error。浏览器fetch带JWT和AbortController，后端有线程池、取消与超时清理，工具线程临时恢复身份后finally清理。默认Mock走真实流协议；真实模型流未验证。
+SSE POST输出delta/done/error。浏览器fetch带JWT和AbortController，后端有线程池、取消与超时清理，工具线程临时恢复身份后finally清理。Mock与真实模式使用相同流协议；本轮真实浏览器Dish Tool与正常流式回答已通过，异常及取消路径应按各自测试证据区分，不能从正常流推导所有失败路径都经过真实供应商验证。
 
 ### Structured Output
 
@@ -258,8 +255,8 @@ docker compose up -d --wait
 
 ## 测试与当前证据
 
-- 后端最新全量验收：RUN_DB_TESTS=true，mvn clean package，69项、0失败、0错误、0跳过，全部模块SUCCESS；真实MySQL与Redis参与。
-- Maven Surefire强制AI_MODE=mock；Provider适配器另连接本机HTTP替身验证同步、SSE和错误不重试，未访问真实供应商。等待API Key进行真实验证。
+- 后端最新全量验收：RUN_DB_TESTS=true，mvn clean package，83项、0失败、0错误、0跳过，全部模块SUCCESS；真实MySQL与Redis参与。
+- Maven Surefire强制AI_MODE=mock并清空测试进程AI_API_KEY；Provider适配器另连接本机HTTP替身验证同步、SSE和错误不重试，普通回归不访问真实供应商。独立真实Probe、六项AI功能与浏览器验证均已有通过证据，见[真实AI验收记录](docs/REAL_AI_VERIFICATION.md)。
 - 前端npm test的7项测试及npm run build成功；Element Plus全量引入带约1.05MB JS体积警告，尚未按需拆包。
 - Chrome浏览器14组流程、24项视口检查通过，无pageerror；真实选微辣菜品28元+套餐36元，下单64元并核对详情，取消/再来一单、Mock SSE及四类RAG来源均通过。三类网络/AI503/401错误显示另用浏览器拦截模拟，详见验收报告。
 - Docker config通过，build网络阻塞，up及健康检查未执行。
@@ -267,9 +264,9 @@ docker compose up -d --wait
 
 ## 学习亮点与下一步
 
-先沿着下单事务读代码，再读JWT身份链、缓存失效、只读Tool权限、结构化核价、Memory和RAG。亮点是业务事实与模型文本分离，以及明确记录Mock能力边界；不要在简历上声称真实支付、微服务、生产高并发或真实模型效果已经验证。
+先沿着下单事务读代码，再读JWT身份链、缓存失效、只读Tool权限、结构化核价、Memory和RAG。亮点是业务事实与模型文本分离，以及分别记录Mock回归和真实模型证据；不要在简历上声称真实支付、微服务、生产高并发，或把有限真实样例当成全面模型效果评测。
 
-完整学习记录保留于LEARNING.md，INTERVIEW.md提供36个问答。下一步优先恢复Docker Hub连通性并完成部署验收，使用已提供的开发演示账号练习完整操作。后续真实模型效果评测、管理后台页面、语义Embedding、生产安全和可观测性均需独立安排。
+完整学习记录保留于LEARNING.md，INTERVIEW.md提供36个问答。本轮真实AI修复和有限场景验收已完成；Docker部署仍需恢复Docker Hub连通性后独立验收。后续系统模型效果评测、管理后台页面、语义Embedding、生产安全和可观测性均需独立安排。
 
 ## 开发环境演示账号
 

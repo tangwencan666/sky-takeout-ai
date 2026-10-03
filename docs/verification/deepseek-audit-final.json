@@ -1,0 +1,39 @@
+[
+  {
+    "timestamp": "2026-10-03T13:13:02.611+08:00",
+    "kind": "request",
+    "requestId": "f0517aaf-2199-49b0-95c3-6b10099f1aee",
+    "conversationId": "-",
+    "feature": "provider-probe",
+    "model": "deepseek-flash",
+    "durationMs": "1445",
+    "toolCall": "false",
+    "toolCount": "0",
+    "success": "true",
+    "category": "-",
+    "upstreamStatus": "null"
+  },
+  {
+    "timestamp": "2026-10-03T13:13:05.127+08:00",
+    "kind": "meal-plan validation",
+    "requestId": "797a0ae5-7c6a-4956-9305-6b062808b5c1",
+    "category": "ACCEPTED",
+    "dishCount": "5",
+    "budget": "80",
+    "recalculatedTotal": "75.00"
+  },
+  {
+    "timestamp": "2026-10-03T13:13:05.129+08:00",
+    "kind": "request",
+    "requestId": "797a0ae5-7c6a-4956-9305-6b062808b5c1",
+    "conversationId": "-",
+    "feature": "meal-plan",
+    "model": "deepseek-flash",
+    "durationMs": "1831",
+    "toolCall": "false",
+    "toolCount": "0",
+    "success": "true",
+    "category": "-",
+    "upstreamStatus": "null"
+  }
+]

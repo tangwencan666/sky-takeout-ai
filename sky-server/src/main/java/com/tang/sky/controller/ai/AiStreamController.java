@@ -10,6 +10,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import com.tang.sky.ai.security.AiFailure;
 /** SSE错误以error事件发送；断开、超时都取消模型任务，工作线程finally清理用户身份。 */
 @RestController
 public class AiStreamController {
@@ -20,14 +21,15 @@ public class AiStreamController {
     public SseEmitter stream(@Valid @RequestBody Request input){
         var identity=UserContext.require();var emitter=new SseEmitter(timeoutMs);var cancelled=new AtomicBoolean();var task=new AtomicReference<Future<?>>();
         Runnable cancel=()->{cancelled.set(true);var future=task.get();if(future!=null)future.cancel(true);};
-        emitter.onCompletion(cancel);emitter.onTimeout(()->{cancel.run();try{send(emitter,"error",Map.of("message","AI响应超时，请稍后重试"));}catch(Exception ignored){/* 超时连接可能已经断开。 */}emitter.complete();});emitter.onError(e->cancel.run());
+        emitter.onCompletion(cancel);emitter.onTimeout(()->{cancel.run();try{send(emitter,"error",errorData(AiFailure.of(AiFailure.Category.TOTAL_TIMEOUT)));}catch(Exception ignored){/* 超时连接可能已经断开。 */}emitter.complete();});emitter.onError(e->cancel.run());
         try{task.set(executor.submit(()->{
             try{UserContext.set(identity);var result=service.streamChat(input,chunk->send(emitter,"delta",Map.of("text",chunk)),cancelled::get);send(emitter,"done",Map.of("conversationId",result.conversationId(),"mode",result.mode()));emitter.complete();}
-            catch(Exception e){if(!cancelled.get()){try{send(emitter,"error",Map.of("message","AI生成中断，请稍后重试"));}catch(Exception ignored){/* 连接已关闭，无可发送的响应。 */}emitter.complete();}}
+            catch(Exception e){if(!cancelled.get()){try{send(emitter,"error",errorData(AiFailure.classify(e)));}catch(Exception ignored){/* 连接已关闭，无可发送的响应。 */}emitter.complete();}}
             finally{UserContext.clear();}
         }));if(cancelled.get())task.get().cancel(true);}
-        catch(org.springframework.core.task.TaskRejectedException e){throw new BusinessException(ErrorCode.AI_UNAVAILABLE);}
+        catch(org.springframework.core.task.TaskRejectedException e){throw AiFailure.of(AiFailure.Category.LOCAL_BUSY);}
         return emitter;
     }
     private static void send(SseEmitter emitter,String event,Object data){try{emitter.send(SseEmitter.event().name(event).data(data));}catch(java.io.IOException e){throw new java.io.UncheckedIOException(e);}}
+    private static Map<String,Object> errorData(AiFailure failure){var data=new java.util.HashMap<String,Object>();data.put("message",failure.getMessage());data.put("category",failure.category().name());data.put("upstreamStatus",failure.upstreamStatus());return data;}
 }

@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-03T05:13:51.498Z",
+  "result": "PASS",
+  "aiPostRequests": 0,
+  "errors": [],
+  "loginStatus": 200,
+  "provider": {
+    "mode": "live",
+    "model": "deepseek-flash",
+    "provider": "deepseek",
+    "providerVerified": true,
+    "instanceId": "89b117fa-3792-4114-8d85-247c54794b60"
+  },
+  "display": "真实模型 · 已验证\n\n模型：deepseek-flash · deepseek\n\n刷新状态\n刷新状态不会调用模型"
+}

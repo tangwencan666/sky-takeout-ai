@@ -6,7 +6,7 @@ public final class AiOutput {
     private AiOutput() {}
     public static String checked(String answer) {
         if (answer == null || answer.isBlank() || answer.length() > 16000)
-            throw new BusinessException(ErrorCode.AI_UNAVAILABLE);
+            throw AiFailure.of(AiFailure.Category.EMPTY_RESPONSE);
         return answer;
     }
 }

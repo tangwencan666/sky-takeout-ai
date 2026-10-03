@@ -6,6 +6,10 @@ import com.tang.sky.ai.security.AiRequestAudit;
 import com.tang.sky.common.*;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.Duration;
+import com.tang.sky.ai.security.AiDeadline;
+import com.tang.sky.ai.security.AiFailure;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +29,9 @@ public class AiProviderService {
     private final boolean keyConfigured;
     private final AiProviderConfiguration.Endpoint endpoint;
     private final AtomicReference<Instant> lastVerified = new AtomicReference<>();
-    private Probe successfulProbe;
+    private volatile Probe successfulProbe;
+    private final AtomicBoolean probing = new AtomicBoolean();
+    private Duration probeTimeout = Duration.ofSeconds(35);
 
     public AiProviderService(ChatModel chatModel, @Value("${AI_MODE:mock}") String mode,
             @Value("${AI_API_KEY:}") String key,
@@ -46,26 +52,27 @@ public class AiProviderService {
         return new Status(mode, model, endpoint.provider(), keyConfigured, verified(), "process-probe", lastVerified.get(), warning, INSTANCE_ID);
     }
 
-    public synchronized Probe probe() {
+    public Probe probe() {
         if (!"USER".equals(UserContext.require().role())) throw new BusinessException(ErrorCode.FORBIDDEN);
         if (!"live".equals(mode))
             return new Probe(mode, model, "【Mock】未发送真实模型请求；请先以AI_MODE=live启动后端", false, INSTANCE_ID);
-        if (!keyConfigured) throw new BusinessException(ErrorCode.AI_UNAVAILABLE, "当前后端进程未读取到AI_API_KEY，请从已配置变量的终端启动");
+        if (!keyConfigured) throw AiFailure.of(AiFailure.Category.MISSING_KEY);
         // 本进程已成功的最小探针直接返回证据，重复点击不会再次产生费用。
         if (successfulProbe != null) return successfulProbe;
-        return AiRequestAudit.run("provider-probe", null, model, () -> {
-            try {
+        if (!probing.compareAndSet(false,true)) throw AiFailure.of(AiFailure.Category.IN_PROGRESS);
+        try {
+            if (successfulProbe != null) return successfulProbe;
+            return AiRequestAudit.run("provider-probe", null, model, () -> {
                 var options = AiProviderConfiguration.options(endpoint, model, 64);
                 options.setInternalToolExecutionEnabled(false);
                 // 新建的ChatClient没有业务提示词或默认工具；唯一用户消息固定为“你好”。
-                String answer = AiOutput.checked(client.prompt().options(options).user("你好").call().content());
+                String answer = AiDeadline.call(probeTimeout,()->AiOutput.checked(client.prompt().options(options).user("你好").call().content()));
                 if (!endpoint.local()) lastVerified.set(Instant.now());
                 successfulProbe = new Probe(mode, model, answer, verified(), INSTANCE_ID);
                 return successfulProbe;
-            } catch (RuntimeException e) {
-                throw new BusinessException(ErrorCode.AI_UNAVAILABLE, "真实模型探针失败，请检查模型名称、账号额度或网络；未自动重试");
-            }
-        });
+            });
+        } catch(RuntimeException e) { throw AiFailure.classify(e); }
+        finally { probing.set(false); }
     }
 
     private boolean verified() { return "live".equals(mode) && !endpoint.local() && lastVerified.get() != null; }

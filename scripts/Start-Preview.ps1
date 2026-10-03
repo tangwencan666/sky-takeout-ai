@@ -82,7 +82,18 @@ try {
     }
     $backend = Start-Process -FilePath $javaPath -ArgumentList @('-jar', ('"' + $jarPath + '"')) -WorkingDirectory $projectPath -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $logPath "$runId-backend.log") -RedirectStandardError (Join-Path $logPath "$runId-backend-error.log")
     Wait-Ready "http://127.0.0.1:$BackendPort/health/ready" $backend
-    $frontend = Start-Process -FilePath $nodePath -ArgumentList @(('"' + $vitePath + '"'), '--host','127.0.0.1','--port',[string]$FrontendPort,'--strictPort') -WorkingDirectory $frontendPath -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $logPath "$runId-frontend.log") -RedirectStandardError (Join-Path $logPath "$runId-frontend-error.log")
+    # Vite only needs API_PROXY_TARGET. Backend credentials must not be inherited by the frontend process.
+    $backendOnly = @{}
+    foreach ($name in @('AI_API_KEY','DB_PASSWORD','JWT_SECRET','REDIS_PASSWORD','ADMIN_INIT_PASSWORD')) {
+        $backendOnly[$name] = [Environment]::GetEnvironmentVariable($name,'Process')
+        [Environment]::SetEnvironmentVariable($name,$null,'Process')
+    }
+    try {
+        $frontend = Start-Process -FilePath $nodePath -ArgumentList @(('"' + $vitePath + '"'), '--host','127.0.0.1','--port',[string]$FrontendPort,'--strictPort') -WorkingDirectory $frontendPath -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $logPath "$runId-frontend.log") -RedirectStandardError (Join-Path $logPath "$runId-frontend-error.log")
+    } finally {
+        foreach ($name in $backendOnly.Keys) { [Environment]::SetEnvironmentVariable($name,$backendOnly[$name],'Process') }
+        $backendOnly.Clear()
+    }
     # Verify the browser's actual same-origin proxy reaches the same ready backend.
     Wait-Ready "http://127.0.0.1:$FrontendPort/api/health/ready" $frontend
     [pscustomobject]@{startedAt=(Get-Date -Format o); backendPid=$backend.Id; frontendPid=$frontend.Id; backendPort=$BackendPort; frontendPort=$FrontendPort; projectPath=$projectPath; aiMode=$env:AI_MODE} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $logPath 'processes.json') -Encoding UTF8

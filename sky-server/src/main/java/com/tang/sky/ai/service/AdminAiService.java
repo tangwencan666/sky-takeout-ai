@@ -40,7 +40,7 @@ public class AdminAiService {
             try {
                 answer = client.prompt().system(prompt).user("统计区间：近" + days + "天。问题：" + question)
                     .toolCallbacks(AiRequestAudit.callbacks(tools)).toolContext(Map.of("identity", UserContext.require())).call().content();
-            } catch (RuntimeException e) { throw new BusinessException(ErrorCode.AI_UNAVAILABLE); }
+            } catch (RuntimeException e) { throw com.tang.sky.ai.security.AiFailure.classify(e); }
         }
         return new Analysis(com.tang.sky.ai.security.AiOutput.checked(answer), revenue, top, trend, mode);
     }

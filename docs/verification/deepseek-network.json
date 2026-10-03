@@ -1,0 +1,46 @@
+{
+  "stage": "network",
+  "checkedAt": "2026-10-03T04:50:47.264Z",
+  "legacy": {
+    "keyExists": true,
+    "baseUrl": "https://api.deepseek.com/",
+    "model": "deepseek-chat"
+  },
+  "paidRequests": 0,
+  "dns": {
+    "result": "PASS",
+    "addresses": [
+      {
+        "address": "113.240.66.218",
+        "family": 4
+      },
+      {
+        "address": "175.12.122.167",
+        "family": 4
+      }
+    ],
+    "durationMs": 21
+  },
+  "tcp": {
+    "result": "PASS",
+    "durationMs": 22
+  },
+  "tls": {
+    "result": "PASS",
+    "protocol": "TLSv1.3",
+    "certificateVerified": true,
+    "durationMs": 39
+  },
+  "unauthenticatedHttp": {
+    "result": "PASS",
+    "httpStatus": 401,
+    "tlsVerified": true,
+    "durationMs": 109
+  },
+  "proxyEnvironment": {
+    "HTTP_PROXY": false,
+    "HTTPS_PROXY": false,
+    "ALL_PROXY": false,
+    "NO_PROXY": false
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "startedAt": "2026-10-03T05:02:46.148Z",
+  "result": "PASS",
+  "stages": [
+    {
+      "name": "RAG",
+      "result": "PASS",
+      "startedAt": "2026-10-03T05:02:46.538Z",
+      "http": [
+        {
+          "path": "/user/ai/rules",
+          "status": 200,
+          "elapsedMs": 1394,
+          "isAi": true
+        }
+      ],
+      "prompt": "配送超时怎么办？",
+      "conversationId": "live_rag_07b4e7115c1cb158",
+      "reply": {
+        "modelMode": "live",
+        "embeddingMode": "local-hash",
+        "sources": [
+          "delivery-policy.md"
+        ],
+        "answer": "配送超时属于订单履约问题，我这边只能帮你查询和说明规则，不能直接改单、定位骑手或承诺赔偿。\n\n按你提供的《配送规则（学习项目示例）》（来源：delivery-policy.md），建议这样处理：\n\n1. **先查看订单状态**  \n   确认订单是否仍在“配送中”，还是已经显示送达/异常。\n\n2. **联系商家核实进度**  \n   联系商家确认制作与配送情况，保留订单编号和联系记录。\n\n3. **地址或配送范围问题**  \n   如果涉及地址、超范围等，需通过人工客服协商；AI不能直接修改订单。\n\n4. **取消或补偿**  \n   是否取消、是否补偿，需要商家确认。AI无法定位骑手，也不能保证新的送达时间或承诺赔偿。\n\n补充说明：这份规则是**学习项目示例**，不代表真实商家承诺；实际配送范围、时效和售后以门店及平台确认为准。"
+      },
+      "manualReview": "Compare answer with knowledge/delivery-policy.md; it must not invent compensation or guaranteed arrival time.",
+      "finishedAt": "2026-10-03T05:02:47.933Z"
+    },
+    {
+      "name": "Order-Tool",
+      "result": "PASS",
+      "startedAt": "2026-10-03T05:02:47.934Z",
+      "http": [
+        {
+          "path": "/user/ai/chat",
+          "status": 200,
+          "elapsedMs": 1623,
+          "isAi": true
+        },
+        {
+          "path": "/user/orders?page=1&size=10",
+          "status": 200,
+          "elapsedMs": 11,
+          "isAi": false
+        }
+      ],
+      "prompt": "我最近一笔订单是什么？",
+      "conversationId": "live_order_47eb5c95e0e4be99",
+      "reply": {
+        "mode": "live",
+        "conversationId": "live_order_47eb5c95e0e4be99",
+        "message": "您最近一笔订单是：\n\n- **订单号**：58\n- **状态**：待支付（PENDING_PAYMENT）\n- **金额**：¥28.00\n- **下单时间**：2026-10-03 11:02:42\n\n需要我帮您查看这笔订单包含哪些餐品吗？"
+      },
+      "expected": {
+        "id": 58,
+        "number": "2452af8e-60db-4a24-8097-ca1b3c91a544",
+        "status": "PENDING_PAYMENT",
+        "amount": 28
+      },
+      "answerMatches": {
+        "id": true,
+        "number": false,
+        "amount": true
+      },
+      "toolCallingEvidence": "Requires correlated backend getRecentOrders (and optional getOrderDetail) AI tool success log; text match alone is insufficient.",
+      "finishedAt": "2026-10-03T05:02:49.570Z"
+    }
+  ],
+  "aiApplicationRequests": 2,
+  "runtimePolicy": "sequential, 45-second deadline per request, no retries, no business mutations",
+  "statusBefore": {
+    "mode": "live",
+    "model": "deepseek-flash",
+    "provider": "deepseek",
+    "keyConfigured": true,
+    "providerVerified": true,
+    "verificationScope": "process-probe",
+    "lastVerifiedAt": "2026-10-03T05:00:10.443416200Z",
+    "instanceId": "154f6e00-746f-4c30-846a-412f98fb81a4"
+  },
+  "menuTruth": [
+    {
+      "id": 118,
+      "name": "宫保鸡丁",
+      "price": 28,
+      "description": "微辣，鸡丁与花生，经典下饭菜",
+      "status": 1
+    },
+    {
+      "id": 119,
+      "name": "鱼香肉丝",
+      "price": 26,
+      "description": "酸甜微辣，猪肉丝与时蔬",
+      "status": 1
+    },
+    {
+      "id": 120,
+      "name": "麻婆豆腐",
+      "price": 18,
+      "description": "麻辣豆腐，适合配米饭",
+      "status": 1
+    },
+    {
+      "id": 121,
+      "name": "香菇滑鸡",
+      "price": 25,
+      "description": "香菇与鸡肉，鲜香不辣",
+      "status": 1
+    },
+    {
+      "id": 122,
+      "name": "清炒时蔬",
+      "price": 16,
+      "description": "当季蔬菜清炒，清淡不辣",
+      "status": 1
+    },
+    {
+      "id": 123,
+      "name": "蒜蓉西兰花",
+      "price": 18,
+      "description": "蒜香西兰花，清爽不辣",
+      "status": 1
+    },
+    {
+      "id": 124,
+      "name": "番茄炒蛋",
+      "price": 20,
+      "description": "番茄与鸡蛋，酸甜不辣",
+      "status": 1
+    },
+    {
+      "id": 125,
+      "name": "扬州炒饭",
+      "price": 22,
+      "description": "鸡蛋、玉米与豌豆炒饭，不辣",
+      "status": 1
+    },
+    {
+      "id": 126,
+      "name": "米饭",
+      "price": 3,
+      "description": "一份热米饭",
+      "status": 1
+    },
+    {
+      "id": 127,
+      "name": "紫菜蛋花汤",
+      "price": 8,
+      "description": "紫菜与鸡蛋，温热清汤",
+      "status": 1
+    },
+    {
+      "id": 128,
+      "name": "酸梅汤",
+      "price": 9,
+      "description": "酸甜解腻饮品",
+      "status": 1
+    },
+    {
+      "id": 129,
+      "name": "柠檬红茶",
+      "price": 12,
+      "description": "清新柠檬红茶",
+      "status": 1
+    }
+  ],
+  "latestOrderTruth": {
+    "id": 58,
+    "number": "2452af8e-60db-4a24-8097-ca1b3c91a544",
+    "status": "PENDING_PAYMENT",
+    "amount": 28
+  },
+  "statusAfter": {
+    "mode": "live",
+    "model": "deepseek-flash",
+    "provider": "deepseek",
+    "keyConfigured": true,
+    "providerVerified": true,
+    "verificationScope": "process-probe",
+    "lastVerifiedAt": "2026-10-03T05:00:10.443416200Z",
+    "instanceId": "154f6e00-746f-4c30-846a-412f98fb81a4"
+  },
+  "evidenceScope": "HTTP/semantic assertions passed. Root must review recorded answers and join backend tool audit logs before marking Tool Calling fully verified.",
+  "finishedAt": "2026-10-03T05:02:49.579Z"
+}

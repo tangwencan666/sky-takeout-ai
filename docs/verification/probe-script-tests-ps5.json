@@ -1,0 +1,89 @@
+﻿{
+    "powerShell":  "5.1.26100.9444",
+    "result":  "PASS",
+    "tests":  8,
+    "providerRequests":  0,
+    "scriptTotalTimeoutSeconds":  3,
+    "results":  [
+                    {
+                        "case":  "success",
+                        "missingPassword":  true,
+                        "result":  "PASS",
+                        "elapsedMilliseconds":  432,
+                        "localProbeRequests":  0,
+                        "localHttpRequests":  0,
+                        "category":  "LOCAL_CREDENTIALS_MISSING",
+                        "exitCode":  1
+                    },
+                    {
+                        "case":  "hang-readiness",
+                        "missingPassword":  false,
+                        "result":  "PASS",
+                        "elapsedMilliseconds":  2111,
+                        "localProbeRequests":  0,
+                        "localHttpRequests":  1,
+                        "category":  "LOCAL_RESPONSE_TIMEOUT",
+                        "exitCode":  1
+                    },
+                    {
+                        "case":  "body-hang",
+                        "missingPassword":  false,
+                        "result":  "PASS",
+                        "elapsedMilliseconds":  2623,
+                        "localProbeRequests":  0,
+                        "localHttpRequests":  1,
+                        "category":  "LOCAL_READ_TIMEOUT",
+                        "exitCode":  1
+                    },
+                    {
+                        "case":  "hang-probe",
+                        "missingPassword":  false,
+                        "result":  "PASS",
+                        "elapsedMilliseconds":  2041,
+                        "localProbeRequests":  1,
+                        "localHttpRequests":  4,
+                        "category":  "LOCAL_RESPONSE_TIMEOUT",
+                        "exitCode":  1
+                    },
+                    {
+                        "case":  "provider-auth",
+                        "missingPassword":  false,
+                        "result":  "PASS",
+                        "elapsedMilliseconds":  1120,
+                        "localProbeRequests":  1,
+                        "localHttpRequests":  4,
+                        "category":  "AUTH",
+                        "exitCode":  1
+                    },
+                    {
+                        "case":  "success",
+                        "missingPassword":  false,
+                        "result":  "PASS",
+                        "elapsedMilliseconds":  1123,
+                        "localProbeRequests":  1,
+                        "localHttpRequests":  5,
+                        "category":  null,
+                        "exitCode":  0
+                    },
+                    {
+                        "case":  "verified",
+                        "missingPassword":  false,
+                        "result":  "PASS",
+                        "elapsedMilliseconds":  980,
+                        "localProbeRequests":  0,
+                        "localHttpRequests":  3,
+                        "category":  null,
+                        "exitCode":  0
+                    },
+                    {
+                        "case":  "redirect",
+                        "missingPassword":  false,
+                        "result":  "PASS",
+                        "elapsedMilliseconds":  495,
+                        "localProbeRequests":  0,
+                        "localHttpRequests":  1,
+                        "category":  "LOCAL_REDIRECT",
+                        "exitCode":  1
+                    }
+                ]
+}

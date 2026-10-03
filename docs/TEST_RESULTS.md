@@ -1,6 +1,28 @@
 # 最终测试记录
 
-日期：2026-10-03（Asia/Shanghai）。本轮最终命令：RUN_DB_TESTS=true，mvn -B -ntp clean package，Java17。为验证收费请求隔离，外部AI_MODE=live、AI_API_KEY使用临时随机合成值、AI_BASE_URL指向本机不可用端口；Surefire在系统属性和测试进程环境双重强制Mock并清空Key。JWT_SECRET为临时环境随机密钥。全部模型测试仅使用Mock或本机协议替身，未调用真实供应商。
+日期：2026-10-03（Asia/Shanghai）。**本轮Probe与真实AI修复后的最终全量构建于13:12:28完成：83项、0失败、0错误、0跳过，全部Maven模块SUCCESS。Structured Output修复后的最后一次真实复验HTTP200，1859ms，Java核价75.00元且独立数据库查询一致，不超过80元预算。** 首次结构化409及旧轮次记录保留；本轮有限场景通过不等于生产可靠性或全面模型效果评测。
+
+## 当前真实AI修复与验证进展
+
+| 层级 | 当前结果与边界 |
+| --- | --- |
+| 普通Maven回归 | 最终clean package：83项、0失败/错误/跳过，全部模块SUCCESS；Surefire系统属性与测试进程环境双重强制AI_MODE=mock并清空AI_API_KEY |
+| PowerShell脚本故障测试 | Windows PowerShell5.1与PowerShell7各8项，共16项通过；全部本机替身，真实Provider请求0次 |
+| 旧脚本阻塞复现 | 原提交脚本执行到缺DEMO_PASSWORD的Read-Host后持续等待；2.5秒内ready1次、登录0次、Probe0次，只停止测试子进程 |
+| 最小真实Probe | 直接HTTP与Spring AI链路均通过，独立显式调用，非普通Maven测试 |
+| 真实功能 | 浏览器Dish Tool与正常SSE、Memory、RAG、当前用户Order Tool已通过；有限场景，未推广为全部故障与安全路径通过 |
+| Structured Output | PASS；修复后最后一次真实请求HTTP200、1859ms，Java75.00元≤80元，独立查询7500分匹配；首次409仍保留，未发生业务写入 |
+| 当前运行入口 | Start-DeepSeek已实际运行；用户无需此刻重复启动，今后重启按README使用独立入口 |
+
+脚本故障覆盖缺凭据、响应头挂起、响应体挂起、Probe挂起、认证错误信封、成功、缓存命中和拒绝重定向。默认Probe总预算45秒（预留1秒清理），本机步骤各最多5秒、单次Probe最多40秒，后端生成35秒；失败输出安全类别并停止，不自动重试。超时不证明供应商未计费。
+
+最终结构化方案的菜品ID为118/124/122/127/126，对应宫保鸡丁28元、番茄炒蛋20元、清炒时蔬16元、紫菜蛋花汤8元、米饭3元。候选、去重、可售状态和BigDecimal预算校验均保留；方案解释每道一份及米饭共享限制，没有把模型提供的金额当作可信值，没有加购或下单。此结果证明该次真实方案核验通过，不证明已支持任意份数或满足所有人的食量需求。
+
+本次用户已明确授权只读旧配置中的Key供新项目使用，旧.env没有修改；敏感变量只交给Java后端，Vite不继承AI_API_KEY、DB_PASSWORD或JWT_SECRET。仅使用sky_takeout_ai，旧库sky_take_out未读写；不永久修改系统环境，不在文档或证据中记录真实凭据或私人对话；仅保留本次公开演示提示及非敏感验收回复。逐项真实证据和验证边界见[REAL_AI_VERIFICATION](REAL_AI_VERIFICATION.md)。
+
+## 历史：DeepSeek切换准备时的69项全量结果
+
+当时的全量命令：RUN_DB_TESTS=true，mvn -B -ntp clean package，Java17。为验证收费请求隔离，外部AI_MODE=live、AI_API_KEY使用临时随机合成值、AI_BASE_URL指向本机不可用端口；Surefire在系统属性和测试进程环境双重强制Mock并清空Key。JWT_SECRET为临时环境随机密钥。该批模型测试仅使用Mock或本机协议替身，未调用真实供应商。
 
 | 测试类 | 项数 | 失败 | 错误 | 跳过 |
 | --- | --- | --- | --- | --- |
@@ -38,9 +60,9 @@
 
 **共31个测试类、69项，0失败、0错误、0跳过；4个Maven Reactor模块全部SUCCESS。**
 
-统计直接提取最终Surefire XML，仅保存逐类统计，不提交含运行环境信息的原始XML。见[机器可读统计](verification/backend-tests.json)。其中包括单元/替身/真实基础设施/HTTP测试，不把全部69项统称为真实模型或数据库测试。
+以上保留当时69项统计。当前[机器可读统计](verification/backend-tests.json)已更新为最新83项，直接提取最终Surefire XML的逐类计数，不提交含运行环境信息的原始XML。测试包括单元/替身/真实基础设施/HTTP，不全部统称为真实模型或数据库测试。
 
-## 额外执行的验收
+## 历史：当时额外执行的验收
 
 | 检查 | 实际结果 |
 | --- | --- |
@@ -71,7 +93,7 @@
 
 新增4项数据库就绪检查后，最终clean package为62项、0失败/错误/跳过。实际Chrome使用demo_user重新打开15173，登录、JWT刷新、16张餐品卡、微辣加购28元、确认下单和详情通过；订单ID58保留。22次同源API全为200，无网络失败或JS异常。直接8080/health/ready及代理15173/api/health/ready均返回新库ready；启动脚本端口占用保护通过。详情见[PREVIEW_FIX](PREVIEW_FIX.md)。
 
-## DeepSeek切换准备复验
+## 历史：DeepSeek切换准备复验
 
 新增7项Provider配置和探针测试后，全量打包69项通过、0失败/错误/跳过。原本地HTTP协议测试也增加/v1不重复、固定你好、64 token、无工具、成功缓存只调用一次的线级断言；本机替身绝不被标记为真实Provider已验证。普通测试通过Surefire系统属性与fork进程环境双重隔离，收费探针仅由独立脚本明确运行。
 

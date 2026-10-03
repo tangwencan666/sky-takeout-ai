@@ -1,0 +1,189 @@
+{
+  "startedAt": "2026-10-03T05:00:31.156Z",
+  "result": "PASS",
+  "prompt": "两个人，预算80，想吃辣一点。",
+  "checks": [
+    "demo_user browser login succeeded",
+    "official live Provider probe gate passed",
+    "actual Flash model selected",
+    "backend instance identified",
+    "real available menu loaded",
+    "browser shows verified real model and exact model name",
+    "SSE HTTP 200",
+    "SSE frames parsed without transport failure",
+    "SSE has no error event",
+    "multiple real deltas and one live done event",
+    "nonempty real model answer",
+    "answer references actual available dish names",
+    "real reply is rendered in browser",
+    "same verified backend instance remains active",
+    "exactly one browser AI prompt with no automatic retry",
+    "no browser JavaScript runtime errors"
+  ],
+  "aiApplicationRequests": 1,
+  "blockedAdditionalRequests": 0,
+  "runtimeErrors": [],
+  "statusBefore": {
+    "mode": "live",
+    "model": "deepseek-flash",
+    "provider": "deepseek",
+    "keyConfigured": true,
+    "providerVerified": true,
+    "verificationScope": "process-probe",
+    "lastVerifiedAt": "2026-10-03T05:00:10.443416200Z",
+    "instanceId": "154f6e00-746f-4c30-846a-412f98fb81a4"
+  },
+  "menuTruth": [
+    {
+      "id": 118,
+      "name": "宫保鸡丁",
+      "price": 28,
+      "description": "微辣，鸡丁与花生，经典下饭菜",
+      "status": 1
+    },
+    {
+      "id": 119,
+      "name": "鱼香肉丝",
+      "price": 26,
+      "description": "酸甜微辣，猪肉丝与时蔬",
+      "status": 1
+    },
+    {
+      "id": 120,
+      "name": "麻婆豆腐",
+      "price": 18,
+      "description": "麻辣豆腐，适合配米饭",
+      "status": 1
+    },
+    {
+      "id": 121,
+      "name": "香菇滑鸡",
+      "price": 25,
+      "description": "香菇与鸡肉，鲜香不辣",
+      "status": 1
+    },
+    {
+      "id": 122,
+      "name": "清炒时蔬",
+      "price": 16,
+      "description": "当季蔬菜清炒，清淡不辣",
+      "status": 1
+    },
+    {
+      "id": 123,
+      "name": "蒜蓉西兰花",
+      "price": 18,
+      "description": "蒜香西兰花，清爽不辣",
+      "status": 1
+    },
+    {
+      "id": 124,
+      "name": "番茄炒蛋",
+      "price": 20,
+      "description": "番茄与鸡蛋，酸甜不辣",
+      "status": 1
+    },
+    {
+      "id": 125,
+      "name": "扬州炒饭",
+      "price": 22,
+      "description": "鸡蛋、玉米与豌豆炒饭，不辣",
+      "status": 1
+    },
+    {
+      "id": 126,
+      "name": "米饭",
+      "price": 3,
+      "description": "一份热米饭",
+      "status": 1
+    },
+    {
+      "id": 127,
+      "name": "紫菜蛋花汤",
+      "price": 8,
+      "description": "紫菜与鸡蛋，温热清汤",
+      "status": 1
+    },
+    {
+      "id": 128,
+      "name": "酸梅汤",
+      "price": 9,
+      "description": "酸甜解腻饮品",
+      "status": 1
+    },
+    {
+      "id": 129,
+      "name": "柠檬红茶",
+      "price": 12,
+      "description": "清新柠檬红茶",
+      "status": 1
+    }
+  ],
+  "sse": {
+    "status": 200,
+    "elapsedMs": 3046,
+    "events": [
+      {
+        "event": "delta",
+        "elapsedMs": 1077,
+        "characters": 2
+      },
+      {
+        "event": "delta",
+        "elapsedMs": 1198,
+        "characters": 1
+      },
+      {
+        "event": "delta",
+        "elapsedMs": 1199,
+        "characters": 1
+      },
+      {
+        "event": "delta",
+        "elapsedMs": 3030,
+        "characters": 1
+      },
+      {
+        "event": "delta",
+        "elapsedMs": 3030,
+        "characters": 1
+      },
+      {
+        "event": "done",
+        "elapsedMs": 3032,
+        "mode": "live",
+        "conversationId": "90d050f5-e941-43b4-8bb9-b5363ec461c0"
+      }
+    ],
+    "malformed": false,
+    "transportError": null,
+    "answer": "我来帮您看看有哪些辣味菜品，先查询一下当前菜单。根据当前可售菜单，给你们两位、预算80元、想吃辣的搭配建议如下：\n\n**辣味主菜（三选二）**\n| 菜品 | 价格 | 说明 |\n|---|---|---|\n| 麻婆豆腐 | 18元 | 麻辣，适合配米饭 |\n| 宫保鸡丁 | 28元 | 微辣，鸡丁与花生 |\n| 鱼香肉丝 | 26元 | 酸甜微辣 |\n\n**推荐组合一（最辣）**\n- 麻婆豆腐 18 + 宫保鸡丁 28 = 46元\n- 加米饭 2份 6元 → 合计 **52元**\n- 剩余预算可加紫菜蛋花汤 8元 → **60元**，或酸梅汤 9元解辣\n\n**推荐组合二（荤素搭配）**\n- 宫保鸡丁 28 + 鱼香肉丝 26 = 54元\n- 加米饭 2份 6元 → **60元**\n- 加紫菜蛋花汤 8元 → **68元**，仍在80元内\n\n**推荐组合三（辣+清爽）**\n- 麻婆豆腐 18 + 宫保鸡丁 28 + 清炒时蔬 16 = 62元\n- 加米饭 2份 6元 → **68元**\n\n以上价格均来自当前菜单，最终金额以后端结算为准。需要我帮你查某道菜的辣度口味选项，或者看看购物车里已选的内容吗？",
+    "deltaCount": 343,
+    "doneCount": 1,
+    "errorCount": 0,
+    "eventsScope": "First and last three observed events; all frames validated by the browser runner, full local capture retained in work."
+  },
+  "conversationId": "90d050f5-e941-43b4-8bb9-b5363ec461c0",
+  "referencedMenuNames": [
+    "宫保鸡丁",
+    "鱼香肉丝",
+    "麻婆豆腐",
+    "清炒时蔬",
+    "米饭",
+    "紫菜蛋花汤",
+    "酸梅汤"
+  ],
+  "toolCallingEvidence": "Require matching backend AI tool/requestId logs; menu-name matches alone do not prove tool calling or exclude every fabricated dish.",
+  "statusAfter": {
+    "mode": "live",
+    "model": "deepseek-flash",
+    "provider": "deepseek",
+    "keyConfigured": true,
+    "providerVerified": true,
+    "verificationScope": "process-probe",
+    "lastVerifiedAt": "2026-10-03T05:00:10.443416200Z",
+    "instanceId": "154f6e00-746f-4c30-846a-412f98fb81a4"
+  },
+  "screenshot": "docs/screenshots/09-real-deepseek.png",
+  "finishedAt": "2026-10-03T05:00:37.258Z"
+}

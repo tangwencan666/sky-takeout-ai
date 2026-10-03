@@ -1,0 +1,208 @@
+{
+  "startedAt": "2026-10-03T05:13:02.749Z",
+  "result": "PASS",
+  "stages": [
+    {
+      "name": "Structured-Output",
+      "result": "PASS",
+      "startedAt": "2026-10-03T05:13:03.276Z",
+      "http": [
+        {
+          "path": "/user/ai/meal-plan",
+          "status": 200,
+          "elapsedMs": 1859,
+          "isAi": true
+        },
+        {
+          "path": "/user/dishes/118",
+          "status": 200,
+          "elapsedMs": 16,
+          "isAi": false
+        },
+        {
+          "path": "/user/dishes/124",
+          "status": 200,
+          "elapsedMs": 12,
+          "isAi": false
+        },
+        {
+          "path": "/user/dishes/122",
+          "status": 200,
+          "elapsedMs": 12,
+          "isAi": false
+        },
+        {
+          "path": "/user/dishes/127",
+          "status": 200,
+          "elapsedMs": 13,
+          "isAi": false
+        },
+        {
+          "path": "/user/dishes/126",
+          "status": 200,
+          "elapsedMs": 18,
+          "isAi": false
+        }
+      ],
+      "prompt": "两个人预算80，生成一个套餐。",
+      "plan": {
+        "mode": "live",
+        "reason": "为两人搭配80元内套餐：宫保鸡丁28元、番茄炒蛋20元、清炒时蔬16元、紫菜蛋花汤8元、米饭3元，合计75元，荤素汤饭齐全且口味微辣与不辣兼顾。由于每道菜固定一份且ID不可重复，米饭仅一份，两人可共享，若需两份米饭需另行加购。",
+        "dishIds": [
+          118,
+          124,
+          122,
+          127,
+          126
+        ],
+        "dishes": [
+          {
+            "id": 118,
+            "name": "宫保鸡丁",
+            "price": 28
+          },
+          {
+            "id": 124,
+            "name": "番茄炒蛋",
+            "price": 20
+          },
+          {
+            "id": 122,
+            "name": "清炒时蔬",
+            "price": 16
+          },
+          {
+            "id": 127,
+            "name": "紫菜蛋花汤",
+            "price": 8
+          },
+          {
+            "id": 126,
+            "name": "米饭",
+            "price": 3
+          }
+        ],
+        "totalPrice": 75,
+        "budget": 80,
+        "recomputedCents": "7500"
+      },
+      "finishedAt": "2026-10-03T05:13:05.218Z"
+    }
+  ],
+  "aiApplicationRequests": 1,
+  "runtimePolicy": "sequential, 45-second deadline per request, no retries, no business mutations",
+  "statusBefore": {
+    "mode": "live",
+    "model": "deepseek-flash",
+    "provider": "deepseek",
+    "keyConfigured": true,
+    "providerVerified": true,
+    "verificationScope": "process-probe",
+    "lastVerifiedAt": "2026-10-03T05:13:02.611565800Z",
+    "instanceId": "89b117fa-3792-4114-8d85-247c54794b60"
+  },
+  "menuTruth": [
+    {
+      "id": 118,
+      "name": "宫保鸡丁",
+      "price": 28,
+      "description": "微辣，鸡丁与花生，经典下饭菜",
+      "status": 1
+    },
+    {
+      "id": 119,
+      "name": "鱼香肉丝",
+      "price": 26,
+      "description": "酸甜微辣，猪肉丝与时蔬",
+      "status": 1
+    },
+    {
+      "id": 120,
+      "name": "麻婆豆腐",
+      "price": 18,
+      "description": "麻辣豆腐，适合配米饭",
+      "status": 1
+    },
+    {
+      "id": 121,
+      "name": "香菇滑鸡",
+      "price": 25,
+      "description": "香菇与鸡肉，鲜香不辣",
+      "status": 1
+    },
+    {
+      "id": 122,
+      "name": "清炒时蔬",
+      "price": 16,
+      "description": "当季蔬菜清炒，清淡不辣",
+      "status": 1
+    },
+    {
+      "id": 123,
+      "name": "蒜蓉西兰花",
+      "price": 18,
+      "description": "蒜香西兰花，清爽不辣",
+      "status": 1
+    },
+    {
+      "id": 124,
+      "name": "番茄炒蛋",
+      "price": 20,
+      "description": "番茄与鸡蛋，酸甜不辣",
+      "status": 1
+    },
+    {
+      "id": 125,
+      "name": "扬州炒饭",
+      "price": 22,
+      "description": "鸡蛋、玉米与豌豆炒饭，不辣",
+      "status": 1
+    },
+    {
+      "id": 126,
+      "name": "米饭",
+      "price": 3,
+      "description": "一份热米饭",
+      "status": 1
+    },
+    {
+      "id": 127,
+      "name": "紫菜蛋花汤",
+      "price": 8,
+      "description": "紫菜与鸡蛋，温热清汤",
+      "status": 1
+    },
+    {
+      "id": 128,
+      "name": "酸梅汤",
+      "price": 9,
+      "description": "酸甜解腻饮品",
+      "status": 1
+    },
+    {
+      "id": 129,
+      "name": "柠檬红茶",
+      "price": 12,
+      "description": "清新柠檬红茶",
+      "status": 1
+    }
+  ],
+  "latestOrderTruth": {
+    "id": 58,
+    "number": "2452af8e-60db-4a24-8097-ca1b3c91a544",
+    "status": "PENDING_PAYMENT",
+    "amount": 28
+  },
+  "statusAfter": {
+    "mode": "live",
+    "model": "deepseek-flash",
+    "provider": "deepseek",
+    "keyConfigured": true,
+    "providerVerified": true,
+    "verificationScope": "process-probe",
+    "lastVerifiedAt": "2026-10-03T05:13:02.611565800Z",
+    "instanceId": "89b117fa-3792-4114-8d85-247c54794b60"
+  },
+  "evidenceScope": "HTTP/semantic assertions passed. Root must review recorded answers and join backend tool audit logs before marking Tool Calling fully verified.",
+  "finishedAt": "2026-10-03T05:13:05.228Z"
+}
