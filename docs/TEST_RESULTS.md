@@ -27,15 +27,16 @@
 | com.tang.sky.MemoryTest | 2 | 0 | 0 | 0 |
 | com.tang.sky.OrderIntegrationTest | 3 | 0 | 0 | 0 |
 | com.tang.sky.PrivateToolsTest | 1 | 0 | 0 | 0 |
+| com.tang.sky.ReadinessControllerTest | 4 | 0 | 0 | 0 |
 | com.tang.sky.RagTest | 6 | 0 | 0 | 0 |
 | com.tang.sky.SetmealIntegrationTest | 1 | 0 | 0 | 0 |
 | com.tang.sky.SseHttpTest | 1 | 0 | 0 | 0 |
 | com.tang.sky.StatisticsIntegrationTest | 2 | 0 | 0 | 0 |
 | com.tang.sky.StreamingTest | 6 | 0 | 0 | 0 |
 
-**共28个测试类、58项，0失败、0错误、0跳过；4个Maven Reactor模块全部SUCCESS。**
+**共29个测试类、62项，0失败、0错误、0跳过；4个Maven Reactor模块全部SUCCESS。**
 
-统计直接提取最终Surefire XML，仅保存逐类统计，不提交含运行环境信息的原始XML。见[机器可读统计](verification/backend-tests.json)。其中包括单元/替身/真实基础设施/HTTP测试，不把全部58项统称为真实模型或数据库测试。
+统计直接提取最终Surefire XML，仅保存逐类统计，不提交含运行环境信息的原始XML。见[机器可读统计](verification/backend-tests.json)。其中包括单元/替身/真实基础设施/HTTP测试，不把全部62项统称为真实模型或数据库测试。
 
 ## 额外执行的验收
 
@@ -57,8 +58,13 @@
 | Docker up / health | 未执行 / 未验证 |
 | 真实模型 | 等待API Key进行真实验证 |
 
-真实基础设施：MySQL8.0.44，仅catalog=sky_takeout_ai；Redis3.0.504。实际服务18080、Vite15173。完整菜单CRUD主要由Service+真实数据库集成验证，独立HTTP脚本未覆盖每个管理CRUD。订单创建/菜品创建有真实约束失败回滚证据，套餐没有额外故障注入。
+真实基础设施：MySQL8.0.44，仅catalog=sky_takeout_ai；Redis3.0.504。初次全量验收服务18080、Vite15173；后续预览修复已统一为8080与15173。完整菜单CRUD主要由Service+真实数据库集成验证，独立HTTP脚本未覆盖每个管理CRUD。订单创建/菜品创建有真实约束失败回滚证据，套餐没有额外故障注入。
 
 浏览器/HTTP随机账号及其订单、购物车已按记录定向清理，开发演示数据保留。旧库未读写。本轮服务保留供体验，进程退出后按README启动。证据索引见[verification](verification/README.md)，完整限制见[AUDIT](AUDIT.md)。
 
 可跟踪工作区、Git历史与运行日志的已知会话秘密扫描通过；这不是未知凭据的全面检测或生产安全认证。公开开发演示口令是用户明确授权的演示数据，不是基础设施密码或API Key。
+
+
+## 预览登录修复复验
+
+新增4项数据库就绪检查后，最终clean package为62项、0失败/错误/跳过。实际Chrome使用demo_user重新打开15173，登录、JWT刷新、16张餐品卡、微辣加购28元、确认下单和详情通过；订单ID58保留。22次同源API全为200，无网络失败或JS异常。直接8080/health/ready及代理15173/api/health/ready均返回新库ready；启动脚本端口占用保护通过。详情见[PREVIEW_FIX](PREVIEW_FIX.md)。

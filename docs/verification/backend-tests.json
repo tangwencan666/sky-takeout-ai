@@ -168,6 +168,13 @@
     "skipped": 0
   },
   {
+    "name": "com.tang.sky.ReadinessControllerTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
     "name": "com.tang.sky.SetmealIntegrationTest",
     "tests": 1,
     "failures": 0,

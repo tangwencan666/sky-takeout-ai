@@ -1,0 +1,154 @@
+{
+  "url": "http://127.0.0.1:15173/",
+  "account": "demo_user",
+  "requests": [
+    {
+      "url": "http://127.0.0.1:15173/api/user/auth/login",
+      "method": "POST",
+      "status": 200,
+      "hasAuthorization": false
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/cart",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/setmeals?page=1&size=100",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/dishes?page=1&size=12",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/categories",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/me",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/cart",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/setmeals?page=1&size=100",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/categories",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/dishes?page=1&size=12",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/cart",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/categories",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/setmeals?page=1&size=100",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/dishes?page=1&size=12",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/dishes/118",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/cart",
+      "method": "POST",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/cart",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/cart",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/orders",
+      "method": "POST",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/cart",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/orders?page=1&size=10",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    },
+    {
+      "url": "http://127.0.0.1:15173/api/user/orders/58",
+      "method": "GET",
+      "status": 200,
+      "hasAuthorization": true
+    }
+  ],
+  "runtimeErrors": [],
+  "failedRequests": [],
+  "checks": [
+    "Reload 15173; real demo_user login; 12 dishes and 4 setmeals loaded without alert",
+    "Authenticated refresh restores session through JWT /user/me=200",
+    "Real flavored dish added to empty demo cart: one serving, 28.00",
+    "Order created through browser; detail shows 28.00 and spicy flavor snapshot"
+  ],
+  "order": {
+    "id": 58,
+    "number": "2452af8e-60db-4a24-8097-ca1b3c91a544",
+    "totalAmount": 28,
+    "status": "PENDING_PAYMENT"
+  },
+  "result": "PASS",
+  "screenshot": "screenshots/08-preview-repair-order.png"
+}

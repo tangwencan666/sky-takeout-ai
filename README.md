@@ -2,7 +2,7 @@
 
 Java 外卖业务与大模型应用学习项目：先用确定性的后端实现菜单、购物车和订单，再让AI通过受控工具读取真实业务数据。Maven多模块单体 + Vue用户端，适合按阶段阅读和练习。
 
-**验收状态（2026-10-03）：本轮已重新审计并修复，真实MySQL/Redis回归58项全部通过，另有前端7项测试和真实HTTP完整下单验收。演示账号、12菜4套餐及3笔示例订单已导入。本轮Docker config通过，build仍因Docker Hub鉴权网络超时阻塞，容器启动尚未验收。真实模型API未验证，默认Mock不产生模型调用费用。**
+**验收状态（2026-10-03）：最新后端回归62项全部通过（含4项新增数据库就绪检查），真实MySQL/Redis参与；前端7项测试及真实HTTP/浏览器完整下单已验证。演示账号、12菜4套餐及3笔示例订单已导入。后续预览修复又用demo_user真实下单28元，见[预览修复记录](docs/PREVIEW_FIX.md)。Docker构建仍因Docker Hub鉴权网络超时阻塞；真实模型API未验证，默认Mock不产生模型调用费用。**
 
 先读 [完整审计](docs/AUDIT.md) 与 [最新验收报告](docs/ACCEPTANCE_REPORT.md)，历史进展见 [夜间报告](docs/NIGHTLY_REPORT.md)，学习过程见 [LEARNING](docs/LEARNING.md)，面试准备见 [INTERVIEW](docs/INTERVIEW.md)。
 
@@ -99,7 +99,7 @@ $env:AI_MODE = 'mock'
 $env:CACHE_ENABLED = 'true'
 $env:RUN_DB_TESTS = 'true'
 mvn -B -ntp clean package
-# 必须看到58项测试、0失败、0错误、0跳过和全部模块SUCCESS后启动
+# 必须看到62项测试、0失败、0错误、0跳过和全部模块SUCCESS后启动
 java -jar sky-server/target/sky-server-0.0.1-SNAPSHOT.jar
 ```
 
@@ -114,6 +114,16 @@ npm run dev
 ```
 
 浏览器http://127.0.0.1:5173，Vite把/api代理到8080。`npm run build`生成dist；不能直接双击index.html代替HTTP服务。登录信息仅在sessionStorage保存，后端仍对每次请求鉴权。
+
+### 固定15173预览入口
+
+若使用本次验收的15173入口，在已安全设置DB_PASSWORD的同一终端、已完成构建和npm依赖安装后执行下方命令，替代分别启动Java和Vite：
+
+```powershell
+./scripts/Start-Preview.ps1 -JavaHome 'D:\java\jdk-17.0.20.1+1'
+```
+
+脚本配对启动8080和15173，显式设置代理目标；先验证真实数据库连接、库名与SELECT 1，再验证15173/api/health/ready，成功后才报告ready。只用临时进程环境传递凭据，AI固定Mock；缺少JWT_SECRET时临时生成，不保存。占用端口时直接拒绝，不终止未知服务。当前服务已经运行，直接访问15173即可；再次启动前先确认并停止本项目旧实例，PID及非敏感日志在Git忽略的logs/preview/。不要仅凭/health=200判断数据库可用。
 
 ### 创建自己的管理员与菜单
 
@@ -163,7 +173,7 @@ PUT /admin/dishes/返回ID/status?status=1
 
 | 模块 | 接口 |
 | --- | --- |
-| 公共 | GET /health；POST /user/auth/register、/user/auth/login、/admin/auth/login |
+| 公共 | GET /health（Web存活）、/health/ready（数据库就绪）；POST /user/auth/register、/user/auth/login、/admin/auth/login |
 | 当前身份 | GET /user/me、/admin/me |
 | 分类 | GET /user/categories（启用）、/admin/categories（全部）、/admin/categories/page（分页）；管理员POST /admin/categories，PUT/DELETE /admin/categories/{id}，PUT /{id}/status?status=0或1 |
 | 菜品 | GET /user/dishes、/user/dishes/{id}；管理员同名路径/admin/dishes支持GET/POST及/{id} PUT/DELETE，PUT /{id}/status?status=0或1 |
@@ -228,7 +238,7 @@ docker compose up -d --wait
 
 ## 测试与当前证据
 
-- 后端全量验收：RUN_DB_TESTS=true，mvn clean package，58项、0失败、0错误、0跳过，全部模块SUCCESS；真实MySQL与Redis参与。
+- 后端最新全量验收：RUN_DB_TESTS=true，mvn clean package，62项、0失败、0错误、0跳过，全部模块SUCCESS；真实MySQL与Redis参与。
 - Maven Surefire强制AI_MODE=mock；Provider适配器另连接本机HTTP替身验证同步、SSE和错误不重试，未访问真实供应商。等待API Key进行真实验证。
 - 前端npm test的7项测试及npm run build成功；Element Plus全量引入带约1.05MB JS体积警告，尚未按需拆包。
 - Chrome浏览器14组流程、24项视口检查通过，无pageerror；真实选微辣菜品28元+套餐36元，下单64元并核对详情，取消/再来一单、Mock SSE及四类RAG来源均通过。三类网络/AI503/401错误显示另用浏览器拦截模拟，详见验收报告。
