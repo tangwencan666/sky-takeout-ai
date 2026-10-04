@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-04",
+  "stage": "pre-push",
+  "security": {
+    "result": "PASS",
+    "initialCommits": 26,
+    "initialHistoryBlobs": 387,
+    "knownSecretMatches": 0,
+    "oversizedFiles": 0,
+    "assignmentReview": "Negative login test literal, not an infrastructure credential",
+    "envExampleRetained": true,
+    "privateStartupSettingsIgnored": true
+  },
+  "backend": {
+    "command": "mvn -B -ntp test",
+    "tests": 83,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "paidModelRequests": 0
+  },
+  "frontend": {
+    "tests": 7,
+    "build": "PASS",
+    "largeChunkWarning": true
+  },
+  "startupScripts": [
+    {
+      "result": "PASS",
+      "tests": 4,
+      "providerRequests": 0,
+      "realProcessChanges": 0,
+      "powerShell": "5.1.26100.9444"
+    },
+    {
+      "result": "PASS",
+      "tests": 4,
+      "providerRequests": 0,
+      "realProcessChanges": 0,
+      "powerShell": "7.6.5"
+    }
+  ],
+  "docker": {
+    "config": "PASS",
+    "healthProbeCompile": "PASS",
+    "encoding": "UTF-8",
+    "fullDeployment": "NOT_RUN"
+  }
+}

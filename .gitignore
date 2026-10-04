@@ -9,3 +9,21 @@ logs/
 *.log
 node_modules/
 dist/
+
+# Machine-specific settings and runtime artifacts (never publish credentials).
+.local/
+*.pid
+*.pid.lock
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+tmp/
+temp/
+application-local.yml
+application-local.yaml
+application-local.properties
+application-secrets.yml
+application-secrets.yaml
+application-secrets.properties

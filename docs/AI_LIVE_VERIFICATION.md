@@ -2,7 +2,7 @@
 
 本轮已直接启动官方DeepSeek真实模式，并完成真实Probe、浏览器Dish Tool与SSE、Memory、Structured Output、RAG、Order Tool验证。结构化路径的两次409保留为历史；修复后单次返回真实75元方案并通过Java与独立查库核价。逐项证据与最终结论以[真实AI验收记录](REAL_AI_VERIFICATION.md)为准。
 
-本轮启动与验证已经执行，无需用户现在重复运行。普通Maven回归仍强制`AI_MODE=mock`并清空测试进程中的Provider Key；本机HTTP替身用于协议与失败路径测试，和真实供应商验证分别记录。下面的命令供今后重启使用。
+本轮启动与验证已经执行，无需用户现在重复运行。普通Maven回归仍强制`AI_MODE=mock`并清空测试进程中的Provider Key；本机HTTP替身用于协议与失败路径测试，和真实供应商验证分别记录。下面的命令供今后重启使用。公开仓库默认不依赖开发者个人路径；新使用者通过AI_API_KEY/JAVA_HOME环境变量即可使用，旧开发机路径只保存在Git忽略的本机设置中。
 
 ## 配置含义
 
@@ -29,7 +29,7 @@
 .\scripts\Start-DeepSeek.ps1
 ```
 
-Key优先使用当前进程已有的`AI_API_KEY`；未设置时，脚本只读用户已授权的`D:\project632432643\.env`，校验其供应商为官方DeepSeek，再把`LLM_API_KEY`载入内存供本项目后端启动。旧文件不修改，也不沿用旧文件中已经退役的模型名。入口统一使用官方`https://api.deepseek.com`与`deepseek-flash`，结束后恢复调用者原有AI环境变量，不把Key保存到本项目文件。
+Key优先使用当前进程已有的`AI_API_KEY`；未设置时，只有显式`-LegacyEnvPath`、`SKY_LEGACY_ENV_PATH`或忽略的`.local/startup.json`指定了已授权文件，脚本才只读该文件，校验其供应商为官方DeepSeek，再把`LLM_API_KEY`载入内存供本项目后端启动。旧文件不修改，也不沿用旧文件中已经退役的模型名。入口统一使用官方`https://api.deepseek.com`与`deepseek-flash`，结束后恢复调用者原有AI环境变量，不把Key保存到本项目文件。
 
 入口先调用`Stop-Preview.ps1`校验记录的项目路径、进程命令和创建时间，再停止本项目记录的预览进程；身份不匹配会拒绝，不清理未知服务。随后`Start-Preview.ps1`固定启动8080与15173，并设置同源`/api`代理目标。数据库及前端代理就绪后才报告`http://127.0.0.1:15173`可用，然后执行Probe。缺少JWT_SECRET时只为本次后端生成临时随机值，重启后需重新登录。
 

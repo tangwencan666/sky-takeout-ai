@@ -1,16 +1,24 @@
 param(
-    [string]$LegacyEnvPath = 'D:\project632432643\.env',
-    [string]$JavaHome = 'D:\java\jdk-17.0.20.1+1',
+    [string]$LegacyEnvPath = $env:SKY_LEGACY_ENV_PATH,
+    [string]$JavaHome = $env:JAVA_HOME,
     [switch]$SkipProbe
 )
 # Explicit local operation; never runs during ordinary application startup or Maven tests.
 $ErrorActionPreference = 'Stop'
+# Optional ignored machine settings contain paths only, never credentials. Explicit parameters
+# and environment variables take precedence; a fresh clone requires no legacy project.
+$localSettingsPath = Join-Path (Split-Path -Parent $PSScriptRoot) '.local/startup.json'
+if (Test-Path -LiteralPath $localSettingsPath -PathType Leaf) {
+    $localSettings = Get-Content -LiteralPath $localSettingsPath -Raw | ConvertFrom-Json
+    if (-not $LegacyEnvPath) { $LegacyEnvPath = [string]$localSettings.LegacyEnvPath }
+    if (-not $JavaHome) { $JavaHome = [string]$localSettings.JavaHome }
+}
 $names = @('AI_API_KEY','AI_BASE_URL','AI_MODEL','AI_MODE')
 $previous = @{}
 foreach ($name in $names) { $previous[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 try {
     if ([string]::IsNullOrWhiteSpace($env:AI_API_KEY)) {
-        if (-not (Test-Path -LiteralPath $LegacyEnvPath -PathType Leaf)) { throw 'KEY_SOURCE_MISSING: use the authorized local environment file or an already configured terminal; never send a Key to chat.' }
+        if ([string]::IsNullOrWhiteSpace($LegacyEnvPath) -or -not (Test-Path -LiteralPath $LegacyEnvPath -PathType Leaf)) { throw 'KEY_SOURCE_MISSING: set AI_API_KEY in the process environment or explicitly pass -LegacyEnvPath; never send a Key to chat.' }
         $legacy = @{}
         foreach ($line in [IO.File]::ReadAllLines($LegacyEnvPath)) {
             if ($line -match '^\s*(?:export\s+)?(LLM_API_KEY|LLM_BASE_URL|LLM_MODEL)\s*=\s*(.*)$') {
